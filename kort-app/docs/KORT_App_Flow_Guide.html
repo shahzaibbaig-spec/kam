@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KORT App Flow and Feature Guide</title>
+    <style>
+        @page {
+            margin: 28px 32px;
+        }
+
+        body {
+            font-family: DejaVu Sans, Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.45;
+            color: #1f2937;
+        }
+
+        h1, h2, h3 {
+            margin: 0 0 8px 0;
+            color: #0f172a;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-top: 4px;
+        }
+
+        h2 {
+            font-size: 16px;
+            margin-top: 18px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 4px;
+        }
+
+        h3 {
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        p {
+            margin: 0 0 8px 0;
+        }
+
+        ul, ol {
+            margin: 6px 0 10px 18px;
+            padding: 0;
+        }
+
+        li {
+            margin: 2px 0;
+        }
+
+        .muted {
+            color: #475569;
+        }
+
+        .card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin: 10px 0;
+        }
+
+        .kbd {
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 12px 0;
+        }
+
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 6px 7px;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        th {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .flow-step {
+            border-left: 3px solid #0ea5e9;
+            padding: 6px 10px;
+            margin: 8px 0;
+            background: #f8fafc;
+        }
+
+        .small {
+            font-size: 10px;
+        }
+
+        .cover {
+            border: 2px solid #94a3b8;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 14px;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        }
+
+        .two-col {
+            width: 100%;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="cover">
+        <h1>KORT App Complete Flow and Feature Guide</h1>
+        <p><strong>Product:</strong> KORT Assest Managment System</p>
+        <p><strong>Project Type:</strong> Hospital-grade Asset, Inventory, Procurement, and Biomedical Operations Platform</p>
+        <p><strong>Prepared For:</strong> Demo and onboarding usage</p>
+        <p><strong>Generated On:</strong> April 5, 2026</p>
+        <p class="muted">This guide is based on the current routes, controllers, services, permissions, seeders, and tests in the project.</p>
+    </div>
+
+    <h2>1. Executive Summary</h2>
+    <p>
+        KORT is a role-based hospital operations system designed for burn center workflows. It links administration,
+        organization setup, asset lifecycle, inventory lifecycle, procurement approvals, goods receiving, maintenance,
+        calibration tracking, and audit logging in one permission-controlled application.
+    </p>
+    <div class="card">
+        <strong>Core flow in one line:</strong><br>
+        Login -> role-aware dashboard -> master setup (users/departments/locations) -> register assets and items ->
+        run issue/return/transfer/adjustment workflows -> submit requisitions -> approve -> issue purchase orders ->
+        receive goods into inventory/assets -> monitor maintenance and calibrations -> review audit logs and settings.
+    </div>
+
+    <h2>2. System Architecture Snapshot</h2>
+    <ul>
+        <li><strong>Backend:</strong> Laravel 13, PHP 8.3+</li>
+        <li><strong>Frontend:</strong> Inertia.js + Vue 3 + Tailwind CSS</li>
+        <li><strong>Auth:</strong> Session-based (Laravel Breeze)</li>
+        <li><strong>Authorization:</strong> Spatie Laravel Permission + Policies</li>
+        <li><strong>Audit:</strong> Spatie Activity Log</li>
+        <li><strong>Data Store:</strong> MySQL/MariaDB (production), SQLite (light local)</li>
+        <li><strong>Barcode/QR/Print Foundation:</strong> integrated in asset labels and print views</li>
+    </ul>
+
+    <h2>3. Login and Access Model</h2>
+    <ul>
+        <li>Users log in with email/password on <span class="kbd">/login</span>.</li>
+        <li>Self-registration is intentionally disabled for safety/compliance.</li>
+        <li>After login, users land on <span class="kbd">/dashboard</span>.</li>
+        <li>Sidebar navigation is generated by permissions; users only see modules they are allowed to access.</li>
+        <li>Every sensitive operation (asset, inventory, procurement, maintenance) is permission-gated and auditable.</li>
+    </ul>
+
+    <h2>4. Demo Accounts</h2>
+    <p><strong>Shared password for all demo accounts:</strong> <span class="kbd">BurnCenter@123</span></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Amina Siddiqui</td><td>Super Admin</td><td>super.admin@kort.local</td></tr>
+            <tr><td>Dr. Haris Malik</td><td>Hospital Admin</td><td>hospital.admin@kort.local</td></tr>
+            <tr><td>Dr. Sana Qureshi</td><td>Burn Center Manager / Department Head</td><td>burn.manager@kort.local</td></tr>
+            <tr><td>Usman Riaz</td><td>Store Manager / Inventory Officer</td><td>store.manager@kort.local</td></tr>
+            <tr><td>Engr. Mahnoor Ali</td><td>Biomedical Engineer</td><td>biomedical@kort.local</td></tr>
+            <tr><td>Nadia Rehman</td><td>Nurse Supervisor</td><td>nurse.supervisor@kort.local</td></tr>
+            <tr><td>Rabia Iftikhar</td><td>Staff Nurse / Clinical User</td><td>staff.nurse@kort.local</td></tr>
+            <tr><td>Farhan Yousaf</td><td>Pharmacist / Medical Store Staff</td><td>pharmacist@kort.local</td></tr>
+            <tr><td>Kiran Abbas</td><td>Procurement Officer</td><td>procurement@kort.local</td></tr>
+            <tr><td>Umair Hassan</td><td>Accounts / Finance</td><td>finance@kort.local</td></tr>
+            <tr><td>Hiba Mansoor</td><td>Auditor</td><td>auditor@kort.local</td></tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>5. Complete End-to-End App Flow</h2>
+    <h3>Step 1: Administrative and Organization Setup</h3>
+    <div class="flow-step">
+        <strong>Goal:</strong> establish the hospital structure and access control baseline.
+        <ul>
+            <li>Create and manage users (admin roles).</li>
+            <li>Assign roles and permissions.</li>
+            <li>Create departments (e.g., BICU, CBST, BME).</li>
+            <li>Create locations (wards, stores, rooms, isolation points, reserve storage).</li>
+        </ul>
+    </div>
+
+    <h3>Step 2: Asset Foundation and Lifecycle</h3>
+    <div class="flow-step">
+        <strong>Goal:</strong> register physical equipment and track all custody/state changes.
+        <ol>
+            <li>Create asset categories.</li>
+            <li>Register assets with department/location/supplier details.</li>
+            <li>Generate single or bulk tags (barcode/QR), print labels.</li>
+            <li>Issue assets to staff/location, return assets, transfer assets.</li>
+            <li>Change condition/status with reason and full status log.</li>
+            <li>Scan by tag/barcode/QR/asset-code/serial for quick lookup.</li>
+        </ol>
+        <p class="small">Each change writes movement history + activity audit entries.</p>
+    </div>
+
+    <h3>Step 3: Inventory Foundation and Stock Workflows</h3>
+    <div class="flow-step">
+        <strong>Goal:</strong> maintain batch-safe medical stock with traceable movements.
+        <ol>
+            <li>Create inventory categories and items (reorder/min/max, risk flags, storage flags).</li>
+            <li>Receive stock into batches.</li>
+            <li>Issue stock using FEFO allocation (earliest valid expiry first).</li>
+            <li>Process returns with condition outcomes: usable, damaged, contaminated/quarantine, expired.</li>
+            <li>Transfer stock between locations.</li>
+            <li>Adjust stock (increase/decrease/recount/quarantine/release/damage/expiry).</li>
+            <li>Review complete inventory ledger by item/batch/type/date/location.</li>
+            <li>Scan item barcode or batch for quick retrieval.</li>
+        </ol>
+    </div>
+
+    <h3>Step 4: Procurement Lifecycle</h3>
+    <div class="flow-step">
+        <strong>Goal:</strong> convert demand into controlled purchasing and receiving.
+        <ol>
+            <li>Manage supplier master data.</li>
+            <li>Create purchase requisitions (asset/inventory lines), keep as draft or submit.</li>
+            <li>Approval routing:
+                <ul>
+                    <li>Level 1: Department Head / Manager</li>
+                    <li>Level 2: Hospital Admin for high-value requisitions</li>
+                </ul>
+            </li>
+            <li>Create purchase orders from approved requisitions.</li>
+            <li>Issue PO to supplier, then receive goods through GRN.</li>
+            <li>Auto integration:
+                <ul>
+                    <li>Inventory lines create/update inventory batches and transactions.</li>
+                    <li>Asset lines create new asset records in receiving hold/state.</li>
+                </ul>
+            </li>
+            <li>If rejected quantity/discrepancy exists, GRN is flagged.</li>
+            <li>PO moves to partial/full received, then can be closed.</li>
+        </ol>
+    </div>
+
+    <h3>Step 5: Maintenance and Calibration</h3>
+    <div class="flow-step">
+        <strong>Goal:</strong> keep biomedical equipment reliable and fit for clinical use.
+        <ul>
+            <li>Create maintenance tickets (corrective/preventive/calibration/inspection/breakdown/warranty).</li>
+            <li>Track ticket status: open -> assigned -> in_progress -> awaiting_parts -> completed -> closed.</li>
+            <li>Set fit status: fit_for_use, unfit_for_use, conditional.</li>
+            <li>Use calibration schedule view with due states: upcoming, due_soon, overdue.</li>
+        </ul>
+    </div>
+
+    <h3>Step 6: Security, Reporting, and Settings</h3>
+    <div class="flow-step">
+        <ul>
+            <li>Audit logs show who did what, when, and in which module.</li>
+            <li>Dashboard presents operational metrics, alerts, and role-aware quick actions.</li>
+            <li>Settings manage general defaults, label/barcode behavior, and notification preferences.</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>6. Module-by-Module Features</h2>
+    <h3>Administration</h3>
+    <ul>
+        <li>User management: create, edit, assign role, lifecycle control.</li>
+        <li>Role management: permission matrix updates.</li>
+        <li>Permission-aware navigation and policies across all modules.</li>
+    </ul>
+
+    <h3>Organization</h3>
+    <ul>
+        <li>Department master with type, code, manager, cost center, clinical flags.</li>
+        <li>Location hierarchy with storage type, isolation, emergency reserve, sterile flags.</li>
+    </ul>
+
+    <h3>Assets</h3>
+    <ul>
+        <li>Asset registry CRUD with supplier/department/location/financial metadata.</li>
+        <li>Asset categories and classification.</li>
+        <li>Tag generation (single/bulk) and label print/bulk print.</li>
+        <li>Issue, return, transfer, status-change workflows.</li>
+        <li>Movement trail + status logs + scan lookup.</li>
+    </ul>
+
+    <h3>Inventory</h3>
+    <ul>
+        <li>Inventory items with safety and handling indicators.</li>
+        <li>Batch-level stock control and expiry-sensitive processing.</li>
+        <li>Stock receipt/issue/return/transfer/adjustment transactions.</li>
+        <li>FEFO allocation and blocked expired/quarantined issue behavior.</li>
+        <li>Ledger and scan workflows.</li>
+    </ul>
+
+    <h3>Procurement</h3>
+    <ul>
+        <li>Supplier lifecycle management.</li>
+        <li>Requisition draft, submit, approve, reject, cancel.</li>
+        <li>Purchase order draft, issue, cancel, close.</li>
+        <li>Goods receipt with accepted/rejected quantity handling.</li>
+        <li>Cross-module integration into inventory and assets.</li>
+    </ul>
+
+    <h3>Maintenance and Biomedical</h3>
+    <ul>
+        <li>Ticket creation and status operations.</li>
+        <li>Engineer/supplier assignment, downtime and spare parts tracking.</li>
+        <li>Calibration schedule and due-state filtering.</li>
+        <li>Fit/unfit certification support.</li>
+    </ul>
+
+    <h3>Security and Settings</h3>
+    <ul>
+        <li>Audit log search by user/event/module/date.</li>
+        <li>General settings: product/organization/date/currency/timezone/thresholds.</li>
+        <li>Label settings: tag pattern, size, barcode/QR toggles, print layout.</li>
+        <li>Notification settings: low stock, maintenance, approvals, digest controls.</li>
+    </ul>
+
+    <h2>7. Status and Lifecycle References</h2>
+    <h3>Asset Statuses</h3>
+    <p>available, in_use, under_cleaning, under_maintenance, under_calibration, out_of_order, lost, condemned, disposed</p>
+    <h3>Asset Condition</h3>
+    <p>excellent, good, fair, damaged, critical</p>
+    <h3>Inventory Batch Statuses</h3>
+    <p>active, low_stock, quarantined, damaged, expired, exhausted</p>
+    <h3>Inventory Transaction Types</h3>
+    <p>opening_balance, received, issued, returned, transferred_out, transferred_in, adjusted_in, adjusted_out, quarantined, released_from_quarantine, damaged, expired</p>
+    <h3>Requisition Statuses</h3>
+    <p>draft, submitted, under_review, approved, partially_ordered, fully_ordered, rejected, cancelled</p>
+    <h3>Purchase Order Statuses</h3>
+    <p>draft, issued, partially_received, fully_received, cancelled, closed</p>
+    <h3>Goods Receipt Statuses</h3>
+    <p>draft, received, partially_processed, completed, flagged</p>
+    <h3>Maintenance Ticket Statuses</h3>
+    <p>open, assigned, in_progress, awaiting_parts, completed, closed</p>
+
+    <div class="page-break"></div>
+
+    <h2>8. API Snapshot (Session Auth, Prefix /api/v1)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Endpoint</th>
+                <th>Purpose</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>GET /departments</td><td>Department list with manager and counts</td></tr>
+            <tr><td>GET /locations</td><td>Location list with department/parent relationships</td></tr>
+            <tr><td>GET /users</td><td>User list with role and permission context</td></tr>
+            <tr><td>GET /roles</td><td>Roles with permissions and user counts</td></tr>
+            <tr><td>GET /asset-categories</td><td>Asset category list (permission-protected)</td></tr>
+            <tr><td>GET /assets</td><td>Asset listing with assignment and tag context</td></tr>
+            <tr><td>GET /assets/{asset}</td><td>Detailed asset with movement and status history</td></tr>
+            <tr><td>GET /inventory-categories</td><td>Inventory category list</td></tr>
+            <tr><td>GET /inventory-items</td><td>Inventory item listing</td></tr>
+            <tr><td>GET /inventory-items/{item}</td><td>Detailed item with batches and transactions</td></tr>
+            <tr><td>GET /suppliers</td><td>Supplier list with PO/GRN counts</td></tr>
+            <tr><td>GET /purchase-requisitions</td><td>Requisition listing</td></tr>
+            <tr><td>GET /purchase-orders</td><td>Purchase order listing</td></tr>
+            <tr><td>GET /goods-receipts</td><td>Goods receipt listing</td></tr>
+        </tbody>
+    </table>
+
+    <h2>9. Suggested Demo Script (Fast Walkthrough)</h2>
+    <ol>
+        <li>Login as <strong>Hospital Admin</strong>, show dashboard metrics and quick actions.</li>
+        <li>Open Users/Roles to explain permission-based access.</li>
+        <li>Open Departments and Locations to show organizational model.</li>
+        <li>Switch to <strong>Biomedical Engineer</strong>: create/view an asset, generate tag, print label, run status change.</li>
+        <li>Switch to <strong>Store Manager</strong>: receive stock, then issue stock to demonstrate FEFO and ledger entries.</li>
+        <li>Switch to <strong>Nurse Supervisor</strong>: create and submit a requisition.</li>
+        <li>Approve as <strong>Burn Center Manager</strong> (and as <strong>Hospital Admin</strong> for high-value case).</li>
+        <li>Switch to <strong>Procurement Officer</strong>: create PO and issue it.</li>
+        <li>Switch to <strong>Store Manager</strong>: process GRN with accepted/rejected quantities to show flagged handling.</li>
+        <li>Open Maintenance schedule/tickets and demonstrate status/fit update.</li>
+        <li>Finish with <strong>Auditor</strong> view on audit logs.</li>
+    </ol>
+
+    <h2>10. Role Coverage at a Glance</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Role</th>
+                <th>Typical Responsibilities</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Super Admin</td><td>Full control across every module</td></tr>
+            <tr><td>Hospital Admin</td><td>Governance, setup, approvals, cross-module oversight</td></tr>
+            <tr><td>Department Head</td><td>Department operations and requisition approvals</td></tr>
+            <tr><td>Store Manager</td><td>Inventory operations and stock governance</td></tr>
+            <tr><td>Biomedical Engineer</td><td>Asset lifecycle, maintenance, calibration, fit status</td></tr>
+            <tr><td>Nurse Supervisor</td><td>Operational requests and asset issue/return interactions</td></tr>
+            <tr><td>Staff Nurse</td><td>Scan/view/request workflows</td></tr>
+            <tr><td>Pharmacist</td><td>Inventory + receiving and handling workflows</td></tr>
+            <tr><td>Procurement Officer</td><td>Suppliers, requisitions, POs, GRNs</td></tr>
+            <tr><td>Accounts / Finance</td><td>Financial visibility and reporting</td></tr>
+            <tr><td>Auditor</td><td>Read-only cross-module and audit visibility</td></tr>
+        </tbody>
+    </table>
+
+    <h2>11. Final Notes</h2>
+    <ul>
+        <li>The app is built with a strong audit and permissions model suitable for hospital compliance contexts.</li>
+        <li>Inventory and procurement are tightly integrated; accepted goods can directly update stock or create assets.</li>
+        <li>All operational flows are implemented as explicit workflows with validations and transaction records.</li>
+    </ul>
+
+    <p class="muted small">
+        End of guide.
+    </p>
+</body>
+</html>

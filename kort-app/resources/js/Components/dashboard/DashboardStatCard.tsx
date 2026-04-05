@@ -3,7 +3,6 @@ import { ArrowUpRight, type LucideIcon } from 'lucide-react';
 
 import { AppBadge } from '@/Components/data-display/AppBadge';
 import { AppCard } from '@/Components/data-display/AppCard';
-import { AppLink } from '@/Components/ui/AppLink';
 import { cn } from '@/Lib/utils';
 
 export interface DashboardStatCardProps {
@@ -53,9 +52,9 @@ export function DashboardStatCard({ href, ...props }: DashboardStatCardProps) {
     return (
         <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.18, ease: 'easeOut' }} className="h-full">
             {href ? (
-                <AppLink href={href} className="block h-full">
+                <a href={href} className="block h-full">
                     {card}
-                </AppLink>
+                </a>
             ) : (
                 card
             )}
