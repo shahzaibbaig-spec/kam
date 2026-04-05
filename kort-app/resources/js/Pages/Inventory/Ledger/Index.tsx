@@ -1,5 +1,5 @@
 import { ArrowLeft, RefreshCcw } from 'lucide-react';
-import { router } from '@inertiajs/core';
+import { router } from '@inertiajs/vue3';
 import { useState } from 'react';
 
 import { useReactPage } from '@/Bridge/ReactPageContext';

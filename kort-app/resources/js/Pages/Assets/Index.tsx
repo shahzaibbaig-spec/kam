@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/core';
+import { router } from '@inertiajs/vue3';
 import { Archive, Printer, ScanLine, Tags } from 'lucide-react';
 import { useState } from 'react';
 

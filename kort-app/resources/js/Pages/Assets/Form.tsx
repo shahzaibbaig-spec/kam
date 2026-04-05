@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/core';
+import { router } from '@inertiajs/vue3';
 import { ImagePlus, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

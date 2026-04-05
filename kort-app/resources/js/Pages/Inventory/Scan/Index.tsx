@@ -1,5 +1,5 @@
 import { Camera, ScanLine, Search } from 'lucide-react';
-import { router } from '@inertiajs/core';
+import { router } from '@inertiajs/vue3';
 import { useMemo, useState } from 'react';
 
 import { useReactPage } from '@/Bridge/ReactPageContext';

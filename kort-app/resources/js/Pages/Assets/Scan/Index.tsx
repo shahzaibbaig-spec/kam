@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/core';
+import { router } from '@inertiajs/vue3';
 import { Camera, ScanLine, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 

@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/core';
+import { router } from '@inertiajs/vue3';
 import { Eye } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
