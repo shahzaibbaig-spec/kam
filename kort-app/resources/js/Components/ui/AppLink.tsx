@@ -185,14 +185,18 @@ export const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>(
             event.preventDefault();
 
             try {
-                router.visit(resolvedHref.visitHref, {
+                const visitOptions = {
                     method,
-                    data: data as never,
+                    data: (data ?? {}) as never,
                     preserveScroll,
                     preserveState,
                     replace,
-                    only,
-                    headers,
+                    only: only ?? [],
+                    headers: headers ?? {},
+                };
+
+                router.visit(resolvedHref.visitHref, {
+                    ...visitOptions,
                 });
             } catch {
                 if (method === 'get') {

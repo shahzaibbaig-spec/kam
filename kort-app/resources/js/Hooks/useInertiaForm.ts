@@ -67,12 +67,16 @@ export function useInertiaForm<TValues extends FormValues>(initialValues: TValue
     const submit = (method: 'get' | 'post' | 'put' | 'patch' | 'delete', url: string, options: InertiaFormSubmitOptions = {}) => {
         setProcessing(true);
 
-        router.visit(url, {
+        const visitOptions = {
             method,
-            data,
+            data: data ?? {},
             preserveScroll: options.preserveScroll ?? true,
             preserveState: options.preserveState ?? true,
-            replace: options.replace,
+            replace: options.replace ?? false,
+        };
+
+        router.visit(url, {
+            ...visitOptions,
             onSuccess: () => options.onSuccess?.(),
             onError: (visitErrors) => options.onError?.(visitErrors as Record<string, string>),
             onFinish: () => {
