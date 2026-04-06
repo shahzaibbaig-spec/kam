@@ -34,12 +34,22 @@ function resolveHref(href: string): ResolvedHref {
 
     try {
         const parsed = new URL(href, window.location.href);
-        const localDevHosts = new Set(['localhost', '127.0.0.1', '[::1]']);
+        const localDevHosts = new Set(['localhost', '127.0.0.1', '::1']);
+        const sameHostname = parsed.hostname === window.location.hostname;
+        const normalizedPath = `${parsed.pathname}${parsed.search}${parsed.hash}`;
 
         // Guard against production links generated with local APP_URL values.
         if (parsed.origin !== window.location.origin && localDevHosts.has(parsed.hostname)) {
-            const normalizedPath = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+            return {
+                anchorHref: `${window.location.origin}${normalizedPath}`,
+                visitHref: normalizedPath,
+                external: false,
+            };
+        }
 
+        // Also normalize absolute links pointing to the same hostname but a different scheme.
+        // This commonly happens when APP_URL is set to http on a https deployment.
+        if (parsed.origin !== window.location.origin && sameHostname) {
             return {
                 anchorHref: `${window.location.origin}${normalizedPath}`,
                 visitHref: normalizedPath,
@@ -48,7 +58,6 @@ function resolveHref(href: string): ResolvedHref {
         }
 
         const external = parsed.origin !== window.location.origin;
-        const normalizedPath = `${parsed.pathname}${parsed.search}${parsed.hash}`;
 
         return {
             anchorHref: external ? parsed.toString() : normalizedPath,

@@ -24,6 +24,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
 
@@ -42,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->isProduction()) {
+            URL::forceScheme('https');
+        }
+
         Gate::policy(Asset::class, AssetPolicy::class);
         Gate::policy(AssetCategory::class, AssetCategoryPolicy::class);
         Gate::policy(InventoryCategory::class, InventoryCategoryPolicy::class);

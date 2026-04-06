@@ -10,6 +10,8 @@ interface ReactPageErrorBoundaryProps {
 interface ReactPageErrorBoundaryState {
     hasError: boolean;
     message?: string;
+    stack?: string;
+    componentStack?: string;
 }
 
 export class ReactPageErrorBoundary extends Component<
@@ -25,10 +27,15 @@ export class ReactPageErrorBoundary extends Component<
         return {
             hasError: true,
             message: error.message,
+            stack: error.stack ?? undefined,
         };
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+        this.setState({
+            stack: error.stack ?? undefined,
+            componentStack: errorInfo.componentStack ?? undefined,
+        });
         console.error('React page render failed.', error, errorInfo);
     }
 
@@ -59,6 +66,16 @@ export class ReactPageErrorBoundary extends Component<
                                 {this.state.message ? (
                                     <pre className="overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-sm text-slate-100">
                                         {this.state.message}
+                                    </pre>
+                                ) : null}
+                                {this.state.stack ? (
+                                    <pre className="overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs text-slate-200">
+                                        {this.state.stack}
+                                    </pre>
+                                ) : null}
+                                {this.state.componentStack ? (
+                                    <pre className="overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs text-slate-300">
+                                        {this.state.componentStack}
                                     </pre>
                                 ) : null}
                             </div>
