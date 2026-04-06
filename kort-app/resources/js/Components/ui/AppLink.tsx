@@ -164,6 +164,20 @@ export const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>(
                 return;
             }
 
+            // For regular GET navigation, prefer native browser navigation.
+            // This keeps links functional even if Inertia initialization fails in production.
+            const hasInertiaGetOptions =
+                data !== undefined ||
+                preserveScroll !== undefined ||
+                preserveState !== undefined ||
+                replace !== undefined ||
+                headers !== undefined ||
+                (only?.length ?? 0) > 0;
+
+            if (method === 'get' && !hasInertiaGetOptions) {
+                return;
+            }
+
             if (resolvedHref.external) {
                 return;
             }
