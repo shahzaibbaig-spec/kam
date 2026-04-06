@@ -48,6 +48,16 @@ function buildStatusHistoryItems(props: AssetShowPageProps['asset']['status_hist
 export default function AssetShowPage() {
     const { props } = useReactPage<AssetShowPageProps>();
     const { asset, permissions, labelPreview } = props;
+    const assetWithLegacyId = asset as { asset_id?: number | null };
+    const movementHistory = Array.isArray(asset.movement_history) ? asset.movement_history : [];
+    const assignmentHistory = Array.isArray(asset.assignment_history) ? asset.assignment_history : [];
+    const statusHistory = Array.isArray(asset.status_history) ? asset.status_history : [];
+    const assetId =
+        typeof asset.id === 'number'
+            ? asset.id
+            : typeof assetWithLegacyId.asset_id === 'number'
+              ? assetWithLegacyId.asset_id
+              : null;
 
     return (
         <AppLayout breadcrumbs={[{ label: 'Assets', href: route('assets.index') }, { label: asset.asset_name }]}>
@@ -63,65 +73,65 @@ export default function AssetShowPage() {
                     }
                     actions={
                         <>
-                            {permissions.edit ? (
+                            {permissions.edit && assetId !== null ? (
                                 <AppButton asChild>
-                                    <AppLink href={route('assets.edit', asset.id)}>
+                                    <AppLink href={route('assets.edit', assetId)}>
                                         <Pencil className="h-4 w-4" />
                                         Edit asset
                                     </AppLink>
                                 </AppButton>
                             ) : null}
-                            {permissions.generate_tag && !asset.tag_number ? (
+                            {permissions.generate_tag && !asset.tag_number && assetId !== null ? (
                                 <AppButton asChild variant="soft">
-                                    <AppLink href={route('assets.tags.create', asset.id)}>
+                                    <AppLink href={route('assets.tags.create', assetId)}>
                                         <Tags className="h-4 w-4" />
                                         Generate tag
                                     </AppLink>
                                 </AppButton>
                             ) : null}
-                            {permissions.regenerate_tag && asset.tag_number ? (
+                            {permissions.regenerate_tag && asset.tag_number && assetId !== null ? (
                                 <AppButton asChild variant="outline">
-                                    <AppLink href={route('assets.tags.create', asset.id)}>
+                                    <AppLink href={route('assets.tags.create', assetId)}>
                                         <Tags className="h-4 w-4" />
                                         Re-generate tag
                                     </AppLink>
                                 </AppButton>
                             ) : null}
-                            {permissions.print_label && asset.tag_number ? (
+                            {permissions.print_label && asset.tag_number && assetId !== null ? (
                                 <AppButton asChild variant="outline">
-                                    <a href={route('assets.labels.show', asset.id)} target="_blank" rel="noreferrer">
+                                    <a href={route('assets.labels.show', assetId)} target="_blank" rel="noreferrer">
                                         <Printer className="h-4 w-4" />
                                         Print label
                                     </a>
                                 </AppButton>
                             ) : null}
-                            {permissions.issue ? (
+                            {permissions.issue && assetId !== null ? (
                                 <AppButton asChild variant="outline">
-                                    <AppLink href={route('assets.issue.create', asset.id)}>
+                                    <AppLink href={route('assets.issue.create', assetId)}>
                                         <ArrowRightLeft className="h-4 w-4" />
                                         Issue
                                     </AppLink>
                                 </AppButton>
                             ) : null}
-                            {permissions.return && asset.active_assignment ? (
+                            {permissions.return && asset.active_assignment && assetId !== null ? (
                                 <AppButton asChild variant="outline">
-                                    <AppLink href={route('assets.return.create', asset.id)}>
+                                    <AppLink href={route('assets.return.create', assetId)}>
                                         <ArrowRightLeft className="h-4 w-4" />
                                         Return
                                     </AppLink>
                                 </AppButton>
                             ) : null}
-                            {permissions.transfer ? (
+                            {permissions.transfer && assetId !== null ? (
                                 <AppButton asChild variant="outline">
-                                    <AppLink href={route('assets.transfer.create', asset.id)}>
+                                    <AppLink href={route('assets.transfer.create', assetId)}>
                                         <ArrowRightLeft className="h-4 w-4" />
                                         Transfer
                                     </AppLink>
                                 </AppButton>
                             ) : null}
-                            {permissions.change_status ? (
+                            {permissions.change_status && assetId !== null ? (
                                 <AppButton asChild variant="outline">
-                                    <AppLink href={route('assets.status.create', asset.id)}>
+                                    <AppLink href={route('assets.status.create', assetId)}>
                                         <ClipboardCheck className="h-4 w-4" />
                                         Change status
                                     </AppLink>
@@ -174,15 +184,15 @@ export default function AssetShowPage() {
                             items={[
                                 {
                                     value: 'movements',
-                                    label: `Movement history (${asset.movement_history.length})`,
-                                    content: <AssetMovementTable items={asset.movement_history} />,
+                                    label: `Movement history (${movementHistory.length})`,
+                                    content: <AssetMovementTable items={movementHistory} />,
                                 },
                                 {
                                     value: 'assignments',
-                                    label: `Assignment history (${asset.assignment_history.length})`,
+                                    label: `Assignment history (${assignmentHistory.length})`,
                                     content: (
                                         <AssetHistoryTimeline
-                                            items={buildAssignmentHistoryItems(asset.assignment_history)}
+                                            items={buildAssignmentHistoryItems(assignmentHistory)}
                                             emptyTitle="No assignment history"
                                             emptyDescription="Assignments will appear here once this asset is issued, transferred, or returned."
                                         />
@@ -190,10 +200,10 @@ export default function AssetShowPage() {
                                 },
                                 {
                                     value: 'statuses',
-                                    label: `Status history (${asset.status_history.length})`,
+                                    label: `Status history (${statusHistory.length})`,
                                     content: (
                                         <AssetHistoryTimeline
-                                            items={buildStatusHistoryItems(asset.status_history)}
+                                            items={buildStatusHistoryItems(statusHistory)}
                                             emptyTitle="No status changes recorded"
                                             emptyDescription="Status updates will appear here when the asset condition or operational state changes."
                                         />

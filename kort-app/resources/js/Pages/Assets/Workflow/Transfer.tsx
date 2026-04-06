@@ -1,6 +1,7 @@
 import { ArrowRightLeft } from 'lucide-react';
 
 import { useReactPage } from '@/Bridge/ReactPageContext';
+import { AppAlert } from '@/Components/data-display/AppAlert';
 import { AppCard, AppCardContent, AppCardDescription, AppCardHeader, AppCardTitle } from '@/Components/data-display/AppCard';
 import { AssetSummaryCard, TransferComparisonCard } from '@/Components/domain/assets/AssetCards';
 import { PageHeader } from '@/Components/layout/PageHeader';
@@ -35,6 +36,13 @@ function findLabel(records: AssetOptionRecord[], value: string) {
 export default function AssetTransferPage() {
     const { props } = useReactPage<AssetTransferPageProps>();
     const asset = props.asset;
+    const assetWithLegacyId = asset as { asset_id?: number | null };
+    const assetId =
+        typeof asset.id === 'number'
+            ? asset.id
+            : typeof assetWithLegacyId.asset_id === 'number'
+              ? assetWithLegacyId.asset_id
+              : null;
     const form = useInertiaForm<AssetTransferFormData>({
         assignment_type: 'location',
         department_id: '',
@@ -47,11 +55,21 @@ export default function AssetTransferPage() {
     });
 
     const submit = () => {
-        form.post(route('assets.transfer.store', asset.id));
+        if (assetId === null) {
+            return;
+        }
+
+        form.post(route('assets.transfer.store', assetId));
     };
 
     return (
-        <AppLayout breadcrumbs={[{ label: 'Assets', href: route('assets.index') }, { label: asset.asset_name, href: route('assets.show', asset.id) }, { label: 'Transfer' }]}>
+        <AppLayout
+            breadcrumbs={[
+                { label: 'Assets', href: route('assets.index') },
+                { label: asset.asset_name, href: assetId !== null ? route('assets.show', assetId) : route('assets.index') },
+                { label: 'Transfer' },
+            ]}
+        >
             <div className="space-y-6">
                 <PageHeader
                     title="Transfer Asset"
@@ -59,15 +77,23 @@ export default function AssetTransferPage() {
                     actions={
                         <>
                             <AppButton asChild variant="outline">
-                                <AppLink href={route('assets.show', asset.id)}>Back to asset</AppLink>
+                                <AppLink href={assetId !== null ? route('assets.show', assetId) : route('assets.index')}>Back to asset</AppLink>
                             </AppButton>
-                            <AppButton type="button" onClick={submit} loading={form.processing}>
+                            <AppButton type="button" onClick={submit} loading={form.processing} disabled={assetId === null}>
                                 <ArrowRightLeft className="h-4 w-4" />
                                 Transfer asset
                             </AppButton>
                         </>
                     }
                 />
+
+                {assetId === null ? (
+                    <AppAlert
+                        variant="danger"
+                        title="Asset identifier is missing"
+                        description="This record is missing its internal identifier, so transfer processing cannot continue from this page."
+                    />
+                ) : null}
 
                 <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
                     <div className="space-y-6">

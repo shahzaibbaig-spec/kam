@@ -5,64 +5,67 @@ import type { AssetDetailPermissions, AssetListPermissions, AssetListRow } from 
 import type { AppDropdownItem } from '@/types/app-shell';
 
 export interface AssetActionMenuProps {
-    asset: Pick<AssetListRow, 'id' | 'tag_number'>;
+    asset: Pick<AssetListRow, 'id' | 'tag_number'> & { asset_id?: number | null };
     permissions: Partial<AssetListPermissions & AssetDetailPermissions>;
 }
 
 export function AssetActionMenu({ asset, permissions }: AssetActionMenuProps) {
-    const items: AppDropdownItem[] = [
-        {
-            label: 'View asset',
-            href: route('assets.show', asset.id),
-            icon: Eye,
-        },
-    ];
+    const assetId = typeof asset.id === 'number' ? asset.id : typeof asset.asset_id === 'number' ? asset.asset_id : null;
+    const items: AppDropdownItem[] = [];
 
-    if (permissions.edit) {
+    if (assetId !== null) {
+        items.push({
+            label: 'View asset',
+            href: route('assets.show', assetId),
+            icon: Eye,
+        });
+    }
+
+    if (permissions.edit && assetId !== null) {
         items.push({
             label: 'Edit asset',
-            href: route('assets.edit', asset.id),
+            href: route('assets.edit', assetId),
             icon: Pencil,
         });
     }
 
-    if (permissions.issue) {
+    if (permissions.issue && assetId !== null) {
         items.push({
             label: 'Issue asset',
-            href: route('assets.issue.create', asset.id),
+            href: route('assets.issue.create', assetId),
             icon: ArrowRightLeft,
         });
     }
 
-    if (permissions.transfer) {
+    if (permissions.transfer && assetId !== null) {
         items.push({
             label: 'Transfer asset',
-            href: route('assets.transfer.create', asset.id),
+            href: route('assets.transfer.create', assetId),
             icon: ArrowRightLeft,
         });
     }
 
-    if (permissions.generateTag && !asset.tag_number) {
+    if (permissions.generateTag && !asset.tag_number && assetId !== null) {
         items.push({
             label: 'Generate tag',
-            href: route('assets.tags.create', asset.id),
+            href: route('assets.tags.create', assetId),
             icon: Tags,
         });
     }
 
-    if (permissions.regenerateTag && asset.tag_number) {
+    if (permissions.regenerateTag && asset.tag_number && assetId !== null) {
         items.push({
             label: 'Re-generate tag',
-            href: route('assets.tags.create', asset.id),
+            href: route('assets.tags.create', assetId),
             icon: Tags,
         });
     }
 
-    if (permissions.printLabel && asset.tag_number) {
+    if (permissions.printLabel && asset.tag_number && assetId !== null) {
         items.push({
             label: 'Print label',
             icon: Printer,
-            onSelect: () => window.open(route('assets.labels.show', asset.id), '_blank', 'noopener'),
+            onSelect: () => window.open(route('assets.labels.show', assetId), '_blank', 'noopener'),
         });
     }
 

@@ -11,6 +11,7 @@ interface OptionRecord {
 
 interface AssetRecord {
     id: number;
+    asset_id?: number | null;
     asset_name: string;
     asset_code: string;
     asset_status: string;
@@ -33,8 +34,14 @@ const form = useForm({
     reason: '',
 });
 
+const assetId = typeof props.asset.id === 'number' ? props.asset.id : typeof props.asset.asset_id === 'number' ? props.asset.asset_id : null;
+
 const submit = () => {
-    form.post(route('assets.status.store', props.asset.id));
+    if (assetId === null) {
+        return;
+    }
+
+    form.post(route('assets.status.store', assetId));
 };
 </script>
 

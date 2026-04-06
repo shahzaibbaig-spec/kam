@@ -14,6 +14,14 @@ export interface AssetScanResultCardProps {
 }
 
 export function AssetScanResultCard({ asset }: AssetScanResultCardProps) {
+    const assetWithLegacyId = asset as { asset_id?: number | null };
+    const assetId =
+        typeof asset.id === 'number'
+            ? asset.id
+            : typeof assetWithLegacyId.asset_id === 'number'
+              ? assetWithLegacyId.asset_id
+              : null;
+
     return (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
             <AppCard className="border-blue-100">
@@ -52,13 +60,15 @@ export function AssetScanResultCard({ asset }: AssetScanResultCardProps) {
                             </div>
                         </div>
 
-                        <AppLink
-                            href={route('assets.show', asset.id)}
-                            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                        >
-                            Open record
-                            <ArrowRight className="h-4 w-4" />
-                        </AppLink>
+                        {assetId !== null ? (
+                            <AppLink
+                                href={route('assets.show', assetId)}
+                                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                            >
+                                Open record
+                                <ArrowRight className="h-4 w-4" />
+                            </AppLink>
+                        ) : null}
                     </div>
                 </AppCardContent>
             </AppCard>

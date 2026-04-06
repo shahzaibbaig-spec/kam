@@ -16,16 +16,33 @@ import type { AssetTagGeneratePageProps } from '@/types/assets';
 export default function AssetTagGeneratePage() {
     const { props } = useReactPage<AssetTagGeneratePageProps>();
     const asset = props.asset;
+    const assetWithLegacyId = asset as { asset_id?: number | null };
+    const assetId =
+        typeof asset.id === 'number'
+            ? asset.id
+            : typeof assetWithLegacyId.asset_id === 'number'
+              ? assetWithLegacyId.asset_id
+              : null;
     const form = useInertiaForm<{ force: boolean }>({
         force: false,
     });
 
     const submit = () => {
-        form.post(route('assets.tags.store', asset.id));
+        if (assetId === null) {
+            return;
+        }
+
+        form.post(route('assets.tags.store', assetId));
     };
 
     return (
-        <AppLayout breadcrumbs={[{ label: 'Assets', href: route('assets.index') }, { label: asset.asset_name, href: route('assets.show', asset.id) }, { label: 'Generate Tag' }]}>
+        <AppLayout
+            breadcrumbs={[
+                { label: 'Assets', href: route('assets.index') },
+                { label: asset.asset_name, href: assetId !== null ? route('assets.show', assetId) : route('assets.index') },
+                { label: 'Generate Tag' },
+            ]}
+        >
             <div className="space-y-6">
                 <PageHeader
                     title="Generate Asset Tag"
@@ -33,15 +50,23 @@ export default function AssetTagGeneratePage() {
                     actions={
                         <>
                             <AppButton asChild variant="outline">
-                                <AppLink href={route('assets.show', asset.id)}>Back to asset</AppLink>
+                                <AppLink href={assetId !== null ? route('assets.show', assetId) : route('assets.index')}>Back to asset</AppLink>
                             </AppButton>
-                            <AppButton type="button" onClick={submit} loading={form.processing}>
+                            <AppButton type="button" onClick={submit} loading={form.processing} disabled={assetId === null}>
                                 <Tags className="h-4 w-4" />
                                 {form.data.force ? 'Generate replacement tag' : 'Generate tag'}
                             </AppButton>
                         </>
                     }
                 />
+
+                {assetId === null ? (
+                    <AppAlert
+                        variant="danger"
+                        title="Asset identifier is missing"
+                        description="This record is missing its internal identifier, so tag generation cannot continue from this page."
+                    />
+                ) : null}
 
                 <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
                     <AssetSummaryCard

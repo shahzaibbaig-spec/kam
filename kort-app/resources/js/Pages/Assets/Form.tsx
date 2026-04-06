@@ -19,6 +19,20 @@ function normalizeValue(value: string | number | null | undefined) {
     return value === null || value === undefined ? '' : String(value);
 }
 
+function resolveAssetId(asset: AssetFormPageProps['asset']): number | null {
+    if (asset === null) {
+        return null;
+    }
+
+    if (typeof asset.id === 'number') {
+        return asset.id;
+    }
+
+    const legacyAsset = asset as { asset_id?: number | null };
+
+    return typeof legacyAsset.asset_id === 'number' ? legacyAsset.asset_id : null;
+}
+
 function buildFormData(page: AssetFormPageProps['asset']): AssetFormData {
     return {
         asset_name: page?.asset_name ?? '',
@@ -79,6 +93,7 @@ function FieldLabel({ children, hint }: { children: string; hint?: string }) {
 export default function AssetFormPage() {
     const { props } = useReactPage<AssetFormPageProps>();
     const asset = props.asset;
+    const assetId = resolveAssetId(asset);
     const [data, setData] = useState<AssetFormData>(() => buildFormData(asset));
     const [processing, setProcessing] = useState(false);
     const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(asset?.image_url ?? null);
@@ -103,6 +118,10 @@ export default function AssetFormPage() {
     };
 
     const submit = () => {
+        if (asset && assetId === null) {
+            return;
+        }
+
         const payload = asset
             ? {
                   ...data,
@@ -112,7 +131,7 @@ export default function AssetFormPage() {
 
         setProcessing(true);
 
-        router.post(asset ? route('assets.update', asset.id) : route('assets.store'), payload, {
+        router.post(asset ? route('assets.update', assetId as number) : route('assets.store'), payload, {
             forceFormData: true,
             preserveScroll: true,
             onFinish: () => setProcessing(false),
@@ -128,9 +147,9 @@ export default function AssetFormPage() {
                     actions={
                         <>
                             <AppButton asChild variant="outline">
-                                <AppLink href={asset ? route('assets.show', asset.id) : route('assets.index')}>Cancel</AppLink>
+                                <AppLink href={asset && assetId !== null ? route('assets.show', assetId) : route('assets.index')}>Cancel</AppLink>
                             </AppButton>
-                            <AppButton type="button" onClick={submit} loading={processing}>
+                            <AppButton type="button" onClick={submit} loading={processing} disabled={asset !== null && assetId === null}>
                                 <Save className="h-4 w-4" />
                                 {asset ? 'Update asset' : 'Create asset'}
                             </AppButton>
@@ -143,6 +162,14 @@ export default function AssetFormPage() {
                         variant="danger"
                         title="Please review the highlighted fields"
                         description="Laravel validation prevented the asset from being saved. Correct the errors below and try again."
+                    />
+                ) : null}
+
+                {asset && assetId === null ? (
+                    <AppAlert
+                        variant="danger"
+                        title="Asset identifier is missing"
+                        description="This record is missing its internal identifier, so edit mode actions are temporarily unavailable."
                     />
                 ) : null}
 
