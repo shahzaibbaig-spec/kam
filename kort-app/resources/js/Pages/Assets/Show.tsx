@@ -12,6 +12,7 @@ import { AppButton } from '@/Components/ui/AppButton';
 import { AppLink } from '@/Components/ui/AppLink';
 import { AppTabs } from '@/Components/ui/AppTabs';
 import { AppLayout } from '@/Layouts/AppLayout';
+import { resolveAssetIdentifier, unwrapResourceRecord } from '@/Lib/assetIdentity';
 import type { AssetHistoryTimelineItem, AssetShowPageProps } from '@/types/assets';
 import { formatDateTime, formatTitleCase, joinDisplayParts } from '@/Lib/utils';
 
@@ -47,17 +48,12 @@ function buildStatusHistoryItems(props: AssetShowPageProps['asset']['status_hist
 
 export default function AssetShowPage() {
     const { props } = useReactPage<AssetShowPageProps>();
-    const { asset, permissions, labelPreview } = props;
-    const assetWithLegacyId = asset as { asset_id?: number | null };
+    const asset = unwrapResourceRecord<AssetShowPageProps['asset']>(props.asset) ?? ({} as AssetShowPageProps['asset']);
+    const { permissions, labelPreview } = props;
     const movementHistory = Array.isArray(asset.movement_history) ? asset.movement_history : [];
     const assignmentHistory = Array.isArray(asset.assignment_history) ? asset.assignment_history : [];
     const statusHistory = Array.isArray(asset.status_history) ? asset.status_history : [];
-    const assetId =
-        typeof asset.id === 'number'
-            ? asset.id
-            : typeof assetWithLegacyId.asset_id === 'number'
-              ? assetWithLegacyId.asset_id
-              : null;
+    const assetId = resolveAssetIdentifier(props.asset);
 
     return (
         <AppLayout breadcrumbs={[{ label: 'Assets', href: route('assets.index') }, { label: asset.asset_name }]}>

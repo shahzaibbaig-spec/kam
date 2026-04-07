@@ -12,6 +12,7 @@ import { AppSelect } from '@/Components/ui/AppSelect';
 import { AppTextarea } from '@/Components/ui/AppTextarea';
 import { useInertiaForm } from '@/Hooks/useInertiaForm';
 import { AppLayout } from '@/Layouts/AppLayout';
+import { resolveAssetIdentifier, unwrapResourceRecord } from '@/Lib/assetIdentity';
 import type { AssetIssueFormData, AssetIssuePageProps, AssetOptionRecord } from '@/types/assets';
 
 function renderOptions(records: AssetOptionRecord[]) {
@@ -33,14 +34,8 @@ function FieldError({ message }: { message?: string }) {
 
 export default function AssetIssuePage() {
     const { props } = useReactPage<AssetIssuePageProps>();
-    const asset = props.asset;
-    const assetWithLegacyId = asset as { asset_id?: number | null };
-    const assetId =
-        typeof asset.id === 'number'
-            ? asset.id
-            : typeof assetWithLegacyId.asset_id === 'number'
-              ? assetWithLegacyId.asset_id
-              : null;
+    const asset = unwrapResourceRecord<AssetIssuePageProps['asset']>(props.asset) ?? ({} as AssetIssuePageProps['asset']);
+    const assetId = resolveAssetIdentifier(props.asset);
     const form = useInertiaForm<AssetIssueFormData>({
         assignment_type: 'department',
         department_id: '',

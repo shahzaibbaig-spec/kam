@@ -11,18 +11,13 @@ import { AppCheckbox } from '@/Components/ui/AppCheckbox';
 import { AppLink } from '@/Components/ui/AppLink';
 import { useInertiaForm } from '@/Hooks/useInertiaForm';
 import { AppLayout } from '@/Layouts/AppLayout';
+import { resolveAssetIdentifier, unwrapResourceRecord } from '@/Lib/assetIdentity';
 import type { AssetTagGeneratePageProps } from '@/types/assets';
 
 export default function AssetTagGeneratePage() {
     const { props } = useReactPage<AssetTagGeneratePageProps>();
-    const asset = props.asset;
-    const assetWithLegacyId = asset as { asset_id?: number | null };
-    const assetId =
-        typeof asset.id === 'number'
-            ? asset.id
-            : typeof assetWithLegacyId.asset_id === 'number'
-              ? assetWithLegacyId.asset_id
-              : null;
+    const asset = unwrapResourceRecord<AssetTagGeneratePageProps['asset']>(props.asset) ?? ({} as AssetTagGeneratePageProps['asset']);
+    const assetId = resolveAssetIdentifier(props.asset);
     const form = useInertiaForm<{ force: boolean }>({
         force: false,
     });

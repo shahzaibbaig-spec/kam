@@ -12,6 +12,7 @@ import { AppSelect } from '@/Components/ui/AppSelect';
 import { AppTextarea } from '@/Components/ui/AppTextarea';
 import { useInertiaForm } from '@/Hooks/useInertiaForm';
 import { AppLayout } from '@/Layouts/AppLayout';
+import { resolveAssetIdentifier, unwrapResourceRecord } from '@/Lib/assetIdentity';
 import type { AssetOptionRecord, AssetReturnFormData, AssetReturnPageProps } from '@/types/assets';
 
 function renderOptions(records: AssetOptionRecord[]) {
@@ -29,14 +30,8 @@ function renderOptions(records: AssetOptionRecord[]) {
 
 export default function AssetReturnPage() {
     const { props } = useReactPage<AssetReturnPageProps>();
-    const asset = props.asset;
-    const assetWithLegacyId = asset as { asset_id?: number | null };
-    const assetId =
-        typeof asset.id === 'number'
-            ? asset.id
-            : typeof assetWithLegacyId.asset_id === 'number'
-              ? assetWithLegacyId.asset_id
-              : null;
+    const asset = unwrapResourceRecord<AssetReturnPageProps['asset']>(props.asset) ?? ({} as AssetReturnPageProps['asset']);
+    const assetId = resolveAssetIdentifier(props.asset);
     const form = useInertiaForm<AssetReturnFormData>({
         returned_at: new Date().toISOString().slice(0, 16),
         return_condition: asset.condition_status,

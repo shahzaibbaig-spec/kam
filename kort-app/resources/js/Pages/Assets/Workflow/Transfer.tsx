@@ -12,6 +12,7 @@ import { AppSelect } from '@/Components/ui/AppSelect';
 import { AppTextarea } from '@/Components/ui/AppTextarea';
 import { useInertiaForm } from '@/Hooks/useInertiaForm';
 import { AppLayout } from '@/Layouts/AppLayout';
+import { resolveAssetIdentifier, unwrapResourceRecord } from '@/Lib/assetIdentity';
 import type { AssetOptionRecord, AssetTransferFormData, AssetTransferPageProps } from '@/types/assets';
 
 function renderOptions(records: AssetOptionRecord[]) {
@@ -35,14 +36,8 @@ function findLabel(records: AssetOptionRecord[], value: string) {
 
 export default function AssetTransferPage() {
     const { props } = useReactPage<AssetTransferPageProps>();
-    const asset = props.asset;
-    const assetWithLegacyId = asset as { asset_id?: number | null };
-    const assetId =
-        typeof asset.id === 'number'
-            ? asset.id
-            : typeof assetWithLegacyId.asset_id === 'number'
-              ? assetWithLegacyId.asset_id
-              : null;
+    const asset = unwrapResourceRecord<AssetTransferPageProps['asset']>(props.asset) ?? ({} as AssetTransferPageProps['asset']);
+    const assetId = resolveAssetIdentifier(props.asset);
     const form = useInertiaForm<AssetTransferFormData>({
         assignment_type: 'location',
         department_id: '',

@@ -13,24 +13,11 @@ import { AppLink } from '@/Components/ui/AppLink';
 import { AppSelect } from '@/Components/ui/AppSelect';
 import { AppTextarea } from '@/Components/ui/AppTextarea';
 import { AppLayout } from '@/Layouts/AppLayout';
+import { resolveAssetIdentifier, unwrapResourceRecord } from '@/Lib/assetIdentity';
 import type { AssetFormData, AssetFormPageProps, AssetOptionRecord } from '@/types/assets';
 
 function normalizeValue(value: string | number | null | undefined) {
     return value === null || value === undefined ? '' : String(value);
-}
-
-function resolveAssetId(asset: AssetFormPageProps['asset']): number | null {
-    if (asset === null) {
-        return null;
-    }
-
-    if (typeof asset.id === 'number') {
-        return asset.id;
-    }
-
-    const legacyAsset = asset as { asset_id?: number | null };
-
-    return typeof legacyAsset.asset_id === 'number' ? legacyAsset.asset_id : null;
 }
 
 function buildFormData(page: AssetFormPageProps['asset']): AssetFormData {
@@ -92,11 +79,11 @@ function FieldLabel({ children, hint }: { children: string; hint?: string }) {
 
 export default function AssetFormPage() {
     const { props } = useReactPage<AssetFormPageProps>();
-    const asset = props.asset;
-    const assetId = resolveAssetId(asset);
+    const asset = unwrapResourceRecord<NonNullable<AssetFormPageProps['asset']>>(props.asset as any);
+    const assetId = resolveAssetIdentifier(props.asset);
     const [data, setData] = useState<AssetFormData>(() => buildFormData(asset));
     const [processing, setProcessing] = useState(false);
-    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(asset?.image_url ?? null);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>((asset ?? null)?.image_url ?? null);
 
     useEffect(() => {
         if (!data.image) {
