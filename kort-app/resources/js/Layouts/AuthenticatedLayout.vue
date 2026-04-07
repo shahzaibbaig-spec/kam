@@ -4,7 +4,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const showingNavigationDropdown = ref(false);
 const sidebarCollapsed = ref(false);
@@ -28,16 +28,172 @@ const breadcrumbs = computed(() =>
         .map((segment) => (segment === 'Index' ? 'Overview' : segment)),
 );
 
+interface UniversalSearchEntry {
+    id: string | number;
+    title: string;
+    subtitle: string;
+    url: string;
+}
+
+interface UniversalSearchResults {
+    assets: UniversalSearchEntry[];
+    people: UniversalSearchEntry[];
+    vendors: UniversalSearchEntry[];
+    users: UniversalSearchEntry[];
+}
+
+const buildEmptySearchResults = (): UniversalSearchResults => ({
+    assets: [],
+    people: [],
+    vendors: [],
+    users: [],
+});
+
+const searchContainer = ref<HTMLElement | null>(null);
+const searchQuery = ref('');
+const searchResults = ref<UniversalSearchResults>(buildEmptySearchResults());
+const searchOpen = ref(false);
+const searchLoading = ref(false);
+const searchError = ref<string | null>(null);
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+let searchAbortController: AbortController | null = null;
+
+const hasSearchResults = computed(
+    () =>
+        searchResults.value.assets.length > 0 ||
+        searchResults.value.people.length > 0 ||
+        searchResults.value.vendors.length > 0 ||
+        searchResults.value.users.length > 0,
+);
+
+const firstSearchResult = computed<UniversalSearchEntry | null>(
+    () =>
+        searchResults.value.assets[0] ??
+        searchResults.value.people[0] ??
+        searchResults.value.vendors[0] ??
+        searchResults.value.users[0] ??
+        null,
+);
+
+const parseSearchResults = (value: unknown): UniversalSearchResults => {
+    const payload = (value ?? {}) as Partial<UniversalSearchResults>;
+
+    return {
+        assets: Array.isArray(payload.assets) ? payload.assets : [],
+        people: Array.isArray(payload.people) ? payload.people : [],
+        vendors: Array.isArray(payload.vendors) ? payload.vendors : [],
+        users: Array.isArray(payload.users) ? payload.users : [],
+    };
+};
+
+const resetSearchResults = () => {
+    searchResults.value = buildEmptySearchResults();
+};
+
+const closeSearchDropdown = () => {
+    searchOpen.value = false;
+};
+
+const executeUniversalSearch = async (query: string) => {
+    if (searchAbortController) {
+        searchAbortController.abort();
+    }
+
+    const controller = new AbortController();
+    searchAbortController = controller;
+    searchLoading.value = true;
+    searchError.value = null;
+
+    try {
+        const response = await window.axios.get<{ results?: UniversalSearchResults }>(route('search.universal'), {
+            params: {
+                q: query,
+                limit: 5,
+            },
+            signal: controller.signal,
+        });
+
+        searchResults.value = parseSearchResults(response.data?.results);
+    } catch (error: any) {
+        if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') {
+            return;
+        }
+
+        resetSearchResults();
+        searchError.value = 'Search is temporarily unavailable.';
+    } finally {
+        if (searchAbortController === controller) {
+            searchAbortController = null;
+            searchLoading.value = false;
+        }
+    }
+};
+
+const handleSearchEnter = () => {
+    if (firstSearchResult.value) {
+        window.location.href = firstSearchResult.value.url;
+    }
+};
+
+const handleDocumentClick = (event: MouseEvent) => {
+    const target = event.target;
+
+    if (searchContainer.value && target instanceof Node && !searchContainer.value.contains(target)) {
+        closeSearchDropdown();
+    }
+};
+
 onMounted(() => {
     const storedValue = window.localStorage.getItem('kort:sidebar-collapsed');
 
     if (storedValue !== null) {
         sidebarCollapsed.value = storedValue === '1';
     }
+
+    document.addEventListener('click', handleDocumentClick);
+});
+
+onBeforeUnmount(() => {
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+    }
+
+    if (searchAbortController) {
+        searchAbortController.abort();
+    }
+
+    document.removeEventListener('click', handleDocumentClick);
 });
 
 watch(sidebarCollapsed, (value) => {
     window.localStorage.setItem('kort:sidebar-collapsed', value ? '1' : '0');
+});
+
+watch(searchQuery, (value) => {
+    const normalized = value.trim();
+
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = null;
+    }
+
+    if (normalized.length < 2) {
+        if (searchAbortController) {
+            searchAbortController.abort();
+            searchAbortController = null;
+        }
+
+        searchLoading.value = false;
+        searchError.value = null;
+        resetSearchResults();
+        closeSearchDropdown();
+        return;
+    }
+
+    searchOpen.value = true;
+    searchDebounceTimer = setTimeout(() => {
+        void executeUniversalSearch(normalized);
+    }, 260);
 });
 </script>
 
@@ -182,13 +338,95 @@ watch(sidebarCollapsed, (value) => {
                                 </svg>
                             </button>
 
-                            <div class="hidden lg:block">
+                            <div ref="searchContainer" class="relative hidden lg:block">
                                 <input
+                                    v-model="searchQuery"
                                     type="text"
-                                    placeholder="Search assets, stock, suppliers, or records"
+                                    placeholder="Search assets, people, vendors, or users"
                                     class="w-80 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                                    readonly
+                                    @focus="searchOpen = searchQuery.trim().length >= 2 || hasSearchResults"
+                                    @keydown.esc="closeSearchDropdown"
+                                    @keydown.enter.prevent="handleSearchEnter"
                                 />
+
+                                <div
+                                    v-if="searchOpen"
+                                    class="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-surface"
+                                >
+                                    <div class="max-h-[26rem] overflow-y-auto p-2">
+                                        <p v-if="searchLoading" class="px-3 py-3 text-sm text-slate-500">Searching...</p>
+                                        <p v-else-if="searchError" class="px-3 py-3 text-sm text-rose-600">{{ searchError }}</p>
+                                        <p v-else-if="!hasSearchResults" class="px-3 py-3 text-sm text-slate-500">
+                                            No matches found.
+                                        </p>
+
+                                        <div v-else class="space-y-2">
+                                            <section v-if="searchResults.assets.length" class="space-y-1">
+                                                <p class="px-3 pt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                                                    Assets
+                                                </p>
+                                                <Link
+                                                    v-for="entry in searchResults.assets"
+                                                    :key="`asset-${entry.id}`"
+                                                    :href="entry.url"
+                                                    class="block rounded-xl px-3 py-2 transition hover:bg-blue-50"
+                                                    @click="closeSearchDropdown"
+                                                >
+                                                    <p class="text-sm font-semibold text-slate-900">{{ entry.title }}</p>
+                                                    <p class="text-xs text-slate-500">{{ entry.subtitle }}</p>
+                                                </Link>
+                                            </section>
+
+                                            <section v-if="searchResults.people.length" class="space-y-1">
+                                                <p class="px-3 pt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                                                    People
+                                                </p>
+                                                <Link
+                                                    v-for="entry in searchResults.people"
+                                                    :key="`people-${entry.id}`"
+                                                    :href="entry.url"
+                                                    class="block rounded-xl px-3 py-2 transition hover:bg-blue-50"
+                                                    @click="closeSearchDropdown"
+                                                >
+                                                    <p class="text-sm font-semibold text-slate-900">{{ entry.title }}</p>
+                                                    <p class="text-xs text-slate-500">{{ entry.subtitle }}</p>
+                                                </Link>
+                                            </section>
+
+                                            <section v-if="searchResults.vendors.length" class="space-y-1">
+                                                <p class="px-3 pt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                                                    Vendors
+                                                </p>
+                                                <Link
+                                                    v-for="entry in searchResults.vendors"
+                                                    :key="`vendors-${entry.id}`"
+                                                    :href="entry.url"
+                                                    class="block rounded-xl px-3 py-2 transition hover:bg-blue-50"
+                                                    @click="closeSearchDropdown"
+                                                >
+                                                    <p class="text-sm font-semibold text-slate-900">{{ entry.title }}</p>
+                                                    <p class="text-xs text-slate-500">{{ entry.subtitle }}</p>
+                                                </Link>
+                                            </section>
+
+                                            <section v-if="searchResults.users.length" class="space-y-1">
+                                                <p class="px-3 pt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                                                    Users
+                                                </p>
+                                                <Link
+                                                    v-for="entry in searchResults.users"
+                                                    :key="`users-${entry.id}`"
+                                                    :href="entry.url"
+                                                    class="block rounded-xl px-3 py-2 transition hover:bg-blue-50"
+                                                    @click="closeSearchDropdown"
+                                                >
+                                                    <p class="text-sm font-semibold text-slate-900">{{ entry.title }}</p>
+                                                    <p class="text-xs text-slate-500">{{ entry.subtitle }}</p>
+                                                </Link>
+                                            </section>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="flex items-center gap-3">

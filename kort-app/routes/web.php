@@ -30,6 +30,7 @@ use App\Http\Controllers\Procurement\PurchaseOrderController;
 use App\Http\Controllers\Procurement\PurchaseRequisitionController;
 use App\Http\Controllers\Procurement\SupplierController;
 use App\Http\Controllers\Security\AuditLogController;
+use App\Http\Controllers\Search\UniversalSearchController;
 use App\Http\Controllers\Settings\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,7 @@ Route::redirect('/', '/dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/search/universal', UniversalSearchController::class)->name('search.universal');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
