@@ -2,6 +2,7 @@
 import PageHeader from '@/Components/App/PageHeader.vue';
 import StatusBadge from '@/Components/App/StatusBadge.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { resolveAssetIdentifier, unwrapResourceRecord } from '@/Lib/assetIdentity';
 import { Head, useForm } from '@inertiajs/vue3';
 
 interface OptionRecord {
@@ -28,13 +29,15 @@ const props = defineProps<{
     };
 }>();
 
+const asset = unwrapResourceRecord<AssetRecord>(props.asset) ?? props.asset;
+
 const form = useForm({
-    asset_status: props.asset.asset_status,
-    condition_status: props.asset.condition_status,
+    asset_status: asset.asset_status,
+    condition_status: asset.condition_status,
     reason: '',
 });
 
-const assetId = typeof props.asset.id === 'number' ? props.asset.id : typeof props.asset.asset_id === 'number' ? props.asset.asset_id : null;
+const assetId = resolveAssetIdentifier(props.asset);
 
 const submit = () => {
     if (assetId === null) {

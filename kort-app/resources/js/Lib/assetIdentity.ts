@@ -5,19 +5,37 @@ export function unwrapResourceRecord<T>(value: MaybeWrappedRecord<T>): T | null 
         return null;
     }
 
-    if (typeof value === 'object' && value !== null && 'data' in (value as Record<string, unknown>)) {
-        const wrappedData = (value as { data?: unknown }).data;
+    let current: unknown = value;
 
-        if (wrappedData && typeof wrappedData === 'object') {
-            return wrappedData as T;
+    while (typeof current === 'object' && current !== null && 'data' in (current as Record<string, unknown>)) {
+        const wrappedData = (current as { data?: unknown }).data;
+
+        if (!wrappedData || typeof wrappedData !== 'object') {
+            break;
         }
+
+        current = wrappedData;
     }
 
-    return value as T;
+    return current as T;
+}
+
+function parseAssetIdFromUrl(): number | null {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    const match = window.location.pathname.match(/\/assets\/(\d+)(?:\/|$)/);
+    if (!match) {
+        return null;
+    }
+
+    const parsed = Number(match[1]);
+    return Number.isFinite(parsed) ? parsed : null;
 }
 
 export function resolveAssetIdentifier(value: unknown): number | null {
-    const asset = unwrapResourceRecord<{ id?: unknown; asset_id?: unknown }>(value);
+    const asset = unwrapResourceRecord<{ id?: unknown; asset_id?: unknown }>(value as MaybeWrappedRecord<{ id?: unknown; asset_id?: unknown }>);
 
     if (!asset) {
         return null;
@@ -32,12 +50,12 @@ export function resolveAssetIdentifier(value: unknown): number | null {
     if (typeof candidate === 'string') {
         const trimmed = candidate.trim();
         if (trimmed === '') {
-            return null;
+            return parseAssetIdFromUrl();
         }
 
         const parsed = Number(trimmed);
-        return Number.isFinite(parsed) ? parsed : null;
+        return Number.isFinite(parsed) ? parsed : parseAssetIdFromUrl();
     }
 
-    return null;
+    return parseAssetIdFromUrl();
 }
