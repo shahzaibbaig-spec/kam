@@ -191,13 +191,20 @@ watch(sidebarCollapsed, (value) => {
                                 />
                             </div>
 
-                            <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-blue-700">
-                                    {{ $page.props.app.asset_tag_pattern }}
-                                </p>
-                                <p class="mt-2 text-sm text-slate-600">
-                                    Built for burn center asset, inventory, and compliance operations.
-                                </p>
+                            <div class="flex items-center gap-3">
+                                <img
+                                    src="/images/kort-logo.jpeg"
+                                    alt="KORT logo"
+                                    class="h-11 w-11 rounded-xl border border-slate-200 bg-white object-contain p-1 shadow-sm"
+                                />
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.3em] text-blue-700">
+                                        KORT Burn Center Assest Managment System
+                                    </p>
+                                    <p class="mt-2 text-sm text-slate-600">
+                                        Built for burn center asset, inventory, and compliance operations.
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
