@@ -31,7 +31,7 @@ export default function ResetPasswordPage({ email, token }: ResetPasswordPagePro
                 <AuthHeader
                     eyebrow="Set A New Password"
                     title="Create a secure password"
-                    description="Choose a new password for your KORT Assest Managment System account and return to your operational dashboard."
+                    description="Choose a new password for your KORT Asset Management System account and return to your operational dashboard."
                 />
 
                 <AuthCard>

@@ -17,7 +17,7 @@ export interface AppLayoutProps {
 export function AppLayout({ children, breadcrumbs = [] }: AppLayoutProps) {
     const page = useReactPage<ReactSharedPageProps>();
     const shell = useAppShell();
-    const appName = page.props.app?.name ?? 'KORT Assest Managment System';
+    const appName = page.props.app?.name ?? 'KORT Asset Management System';
     const navigation = Array.isArray(page.props.navigation) ? page.props.navigation : [];
     const user = page.props.auth?.user ?? null;
     const flash = page.props.flash ?? {};

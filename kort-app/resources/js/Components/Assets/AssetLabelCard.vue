@@ -14,7 +14,7 @@ defineProps<{
 <template>
     <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
         <p class="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">
-            KORT Assest Managment System
+            KORT Asset Management System
         </p>
         <p class="mt-2 text-sm font-semibold text-slate-950">{{ label.asset_name }}</p>
         <p class="mt-1 text-xs font-medium text-slate-600">{{ label.tag_number }}</p>

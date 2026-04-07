@@ -176,7 +176,7 @@
 <body>
     <div class="toolbar">
         <div>
-            <div class="eyebrow">KORT Assest Managment System</div>
+            <div class="eyebrow">KORT Asset Management System</div>
             <h1 class="title">{{ $title }}</h1>
             <p class="subtitle">
                 Print-ready asset labels for hospital equipment identification, tag verification, and ward-level asset accountability.
@@ -190,7 +190,7 @@
             <article class="label">
                 <div class="label-header">
                     <div>
-                        <div class="eyebrow">KORT Assest Managment System</div>
+                        <div class="eyebrow">KORT Asset Management System</div>
                         <h2 class="asset-name">{{ $label['asset_name'] }}</h2>
                         <div class="meta">{{ $label['tag_number'] ?? 'Tag pending' }}</div>
                         @if ($label['department_name'] || $label['location_name'])

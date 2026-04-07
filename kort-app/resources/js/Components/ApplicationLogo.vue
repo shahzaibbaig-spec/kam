@@ -7,7 +7,7 @@
             <p class="text-xs font-semibold uppercase tracking-[0.3em] text-blue-200">
                 Hospital Ops
             </p>
-            <p class="text-sm font-semibold text-white">KORT Assest Managment System</p>
+            <p class="text-sm font-semibold text-white">KORT Asset Management System</p>
         </div>
     </div>
 </template>

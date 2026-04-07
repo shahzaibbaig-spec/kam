@@ -31,7 +31,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                             </div>
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-[0.32em] text-blue-200">Hospital Operations</p>
-                                <p className="text-sm font-semibold text-white">{page.props.app?.name ?? 'KORT Assest Managment System'}</p>
+                                <p className="text-sm font-semibold text-white">{page.props.app?.name ?? 'KORT Asset Management System'}</p>
                             </div>
                         </AppLink>
 

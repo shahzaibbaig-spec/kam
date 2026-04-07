@@ -12,7 +12,7 @@ export interface PageHeaderProps {
 }
 
 export function PageHeader({
-    eyebrow = 'KORT Assest Managment System',
+    eyebrow = 'KORT Asset Management System',
     title,
     description,
     actions,

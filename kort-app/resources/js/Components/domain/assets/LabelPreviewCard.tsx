@@ -24,7 +24,7 @@ export function LabelPreviewCard({ label, printedCount = 0, lastPrintedAt }: Lab
 
             <AppCardContent className="p-6">
                 <div className="rounded-[1.75rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50/60 to-slate-50 p-5 shadow-sm">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-blue-700">KORT Assest Managment System</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-blue-700">KORT Asset Management System</p>
                     <h3 className="mt-3 text-lg font-semibold text-slate-950">{label.asset_name}</h3>
                     <p className="mt-1 text-sm font-medium text-slate-600">{label.tag_number ?? 'Tag pending'}</p>
                     <p className="mt-2 text-sm text-slate-600">

@@ -199,7 +199,7 @@ watch(sidebarCollapsed, (value) => {
                                 />
                                 <div>
                                     <p class="text-xs font-semibold uppercase tracking-[0.3em] text-blue-700">
-                                        KORT Burn Center Assest Managment System
+                                        KORT Burn Center Asset Management System
                                     </p>
                                     <p class="mt-2 text-sm text-slate-600">
                                         Built for burn center asset, inventory, and compliance operations.

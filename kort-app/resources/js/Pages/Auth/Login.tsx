@@ -37,7 +37,7 @@ export default function LoginPage({ canResetPassword = false, status }: LoginPag
                 <AuthHeader
                     eyebrow="Welcome Back"
                     title="Sign in to continue"
-                    description="Access KORT Assest Managment System for hospital asset accountability, inventory visibility, and daily operational workflows."
+                    description="Access KORT Asset Management System for hospital asset accountability, inventory visibility, and daily operational workflows."
                 />
 
                 <AuthCard>

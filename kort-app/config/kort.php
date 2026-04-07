@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'product_name' => 'KORT Assest Managment System',
+    'product_name' => 'KORT Asset Management System',
     'asset_tag_pattern' => 'BC-KORT-[DEPARTMENT]-[TYPE]-[SEQUENCE]',
     'asset_code_pattern' => 'AST-[DEPARTMENT]-[SEQUENCE]',
     'inventory_item_code_pattern' => 'INV-[CATEGORY]-[SEQUENCE]',
