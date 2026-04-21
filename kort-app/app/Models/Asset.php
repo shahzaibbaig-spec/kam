@@ -120,6 +120,11 @@ class Asset extends Model
         return $this->hasMany(AssetTag::class);
     }
 
+    public function labelPrintLogs(): HasMany
+    {
+        return $this->hasMany(AssetLabelPrintLog::class)->latest('printed_at');
+    }
+
     public function activeTag(): HasOne
     {
         return $this->hasOne(AssetTag::class)->where('is_active', true)->latestOfMany();

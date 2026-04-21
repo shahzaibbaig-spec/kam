@@ -1,0 +1,195 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 2 /Kids [ 5 0 R 7 0 R ] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 2579 >>
+stream
+BT
+/F1 11 Tf
+1 0 0 1 48 782 Tm
+14 TL
+/F1 13 Tf
+(KAM Label Printing Guide) Tj
+/F1 11 Tf
+T*
+(Version: 1.0) Tj
+T*
+(Prepared for: KAM \(KORT Asset Management System\)) Tj
+T*
+(Applies to: Thermal label printing with TSC printers \(including TSC 400 Pro\)) Tj
+T*
+() Tj
+T*
+/F1 13 Tf
+(1. Prerequisites) Tj
+/F1 11 Tf
+T*
+(- Printer installed and visible in Windows Devices & Printers.) Tj
+T*
+(- Correct label media loaded \(for example, 50 x 25 mm\).) Tj
+T*
+(- Printer driver installed from TSC official package.) Tj
+T*
+(- KAM app updated with thermal-print label sizing changes.) Tj
+T*
+() Tj
+T*
+/F1 13 Tf
+(2. Configure Label Settings in KAM) Tj
+/F1 11 Tf
+T*
+(Go to: Settings > Labels and Barcode.) Tj
+T*
+(Set Label Size to your media size \(50x25, 60x40, or 80x50\).) Tj
+T*
+(Set Print Margin \(mm\) according to your printer calibration \(usually 1 to 2 mm\).) Tj
+T*
+(Enable or disable Barcode and QR as needed.) Tj
+T*
+(Save changes.) Tj
+T*
+() Tj
+T*
+/F1 13 Tf
+(3. Configure TSC 400 Pro in Windows) Tj
+/F1 11 Tf
+T*
+(Open: Control Panel > Devices and Printers > TSC 400 Pro > Printing Preferences.) Tj
+T*
+(Set page/stock size exactly equal to your KAM label size.) Tj
+T*
+(Set orientation \(portrait/landscape\) to match label feed direction.) Tj
+T*
+(Set margins to minimum allowed by driver.) Tj
+T*
+(Disable scaling options in driver if available.) Tj
+T*
+(Run printer calibration from driver utility if labels shift.) Tj
+T*
+() Tj
+T*
+/F1 13 Tf
+(4. Print Labels from KAM) Tj
+/F1 11 Tf
+T*
+(Open an asset and click Print Label, or use bulk label printing.) Tj
+T*
+(In browser print dialog:) Tj
+T*
+(- Select printer: TSC 400 Pro) Tj
+T*
+(- Scale: 100% \(Actual Size\)) Tj
+T*
+(- Margins: None or Minimum) Tj
+T*
+(- Headers/Footers: Off) Tj
+T*
+(- Background graphics: Off \(unless required\)) Tj
+T*
+(Print a single test label first, then run bulk prints.) Tj
+T*
+() Tj
+T*
+/F1 13 Tf
+(5. Server Commands After Deployment) Tj
+/F1 11 Tf
+T*
+(Run these from the Laravel directory that contains the artisan file:) Tj
+T*
+(php artisan optimize:clear) Tj
+T*
+(php artisan view:cache) Tj
+T*
+(php artisan config:cache) Tj
+T*
+(php artisan route:cache) Tj
+T*
+(php artisan queue:restart) Tj
+T*
+(If route:cache fails because of Closure routes, use: php artisan route:clear) Tj
+T*
+() Tj
+T*
+/F1 13 Tf
+(6. Quick Troubleshooting) Tj
+/F1 11 Tf
+T*
+(Issue: Could not open input file: artisan) Tj
+T*
+(Fix: cd into the correct Laravel directory, then run artisan commands.) Tj
+T*
+() Tj
+T*
+(Issue: Label prints too large/small) Tj
+T*
+(Fix: Ensure both Windows printer media size and KAM Label Size match exactly.) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 559 >>
+stream
+BT
+/F1 11 Tf
+1 0 0 1 48 782 Tm
+14 TL
+(Issue: Content is cut off) Tj
+T*
+(Fix: Lower Print Margin in KAM or recalibrate printer media sensor.) Tj
+T*
+() Tj
+T*
+(Issue: Misalignment between labels) Tj
+T*
+(Fix: Run gap/calibration from TSC utility; verify label pitch and gap settings.) Tj
+T*
+() Tj
+T*
+/F1 13 Tf
+(7. Recommended Baseline for 50 x 25 mm) Tj
+/F1 11 Tf
+T*
+(KAM Label Size: 50x25) Tj
+T*
+(KAM Print Margin: 1 mm or 2 mm) Tj
+T*
+(Windows Driver Paper Size: 50 x 25 mm) Tj
+T*
+(Browser Scale: 100%) Tj
+T*
+(Print test: 1 label before bulk jobs) Tj
+T*
+() Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000123 00000 n 
+0000000193 00000 n 
+0000002824 00000 n 
+0000002950 00000 n 
+0000003560 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+3686
+%%EOF

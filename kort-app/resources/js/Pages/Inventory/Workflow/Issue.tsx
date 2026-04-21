@@ -54,12 +54,16 @@ function toNumber(value: string | number | null | undefined) {
     return Number.isFinite(amount) ? amount : 0;
 }
 
+function safeBatches(item: InventoryWorkflowItemOption | null | undefined): InventoryWorkflowItemBatchOption[] {
+    return Array.isArray(item?.batches) ? item.batches : [];
+}
+
 function itemAvailable(item: InventoryWorkflowItemOption | null) {
     if (!item) {
         return 0;
     }
 
-    return item.batches
+    return safeBatches(item)
         .filter((batch) => !['quarantined', 'damaged', 'expired', 'exhausted'].includes(batch.status))
         .reduce((total, batch) => total + toNumber(batch.available_quantity), 0);
 }
@@ -71,7 +75,7 @@ function allocationPreview(item: InventoryWorkflowItemOption | null, line: Stock
 
     let remaining = toNumber(line.quantity);
     const preferredBatchId = Number(line.inventory_batch_id || 0);
-    const orderedBatches = [...item.batches]
+    const orderedBatches = [...safeBatches(item)]
         .filter((batch) => !['quarantined', 'damaged', 'expired', 'exhausted'].includes(batch.status))
         .sort((left, right) => (left.expiry_date ?? '9999-12-31').localeCompare(right.expiry_date ?? '9999-12-31'));
 
@@ -137,7 +141,7 @@ export default function InventoryIssuePage() {
     const showLocation = form.data.issue_type === 'location';
     const showRoom = form.data.issue_type === 'room';
     const showUser = form.data.issue_type === 'staff';
-    const restrictedBatchCount = selectedItem?.batches.filter((batch) => ['quarantined', 'damaged', 'expired'].includes(batch.status)).length ?? 0;
+    const restrictedBatchCount = safeBatches(selectedItem).filter((batch) => ['quarantined', 'damaged', 'expired'].includes(batch.status)).length;
     const backHref = selectedItem ? route('inventory.items.show', selectedItem.id) : route('inventory.items.index');
 
     const submit = () => {
@@ -328,7 +332,7 @@ export default function InventoryIssuePage() {
                                                     <label className="text-sm font-medium text-slate-700">Preferred batch</label>
                                                     <AppSelect value={line.inventory_batch_id} onChange={(event) => updateLine(index, { inventory_batch_id: event.target.value })}>
                                                         <option value="">Auto FEFO</option>
-                                                        {(item?.batches ?? []).map((batch) => (
+                                                        {safeBatches(item).map((batch) => (
                                                             <option key={batch.id} value={batch.id}>
                                                                 {batch.batch_number} | {batch.available_quantity} | {batch.expiry_date ?? 'No expiry'}
                                                             </option>

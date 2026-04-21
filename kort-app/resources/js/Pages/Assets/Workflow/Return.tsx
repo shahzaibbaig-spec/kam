@@ -50,7 +50,7 @@ export default function AssetReturnPage() {
         form.post(route('assets.return.store', assetId));
     };
 
-    const returnStatusOptions = props.options.assetStatuses.filter((status) =>
+    const returnStatusOptions = (props.options.assetStatuses ?? []).filter((status) =>
         ['available', 'under_cleaning', 'out_of_order'].includes(status.value ?? ''),
     );
 

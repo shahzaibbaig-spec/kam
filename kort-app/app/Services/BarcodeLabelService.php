@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Asset;
 use App\Models\AssetTag;
+use Illuminate\Support\Str;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -23,11 +24,16 @@ class BarcodeLabelService
         $qrEnabled = (bool) ($printSettings['qr_enabled'] ?? true);
         $barcodeHeight = $this->barcodeHeightFor($labelHeightMm);
         $qrSize = $this->qrSizeFor($labelWidthMm, $labelHeightMm);
+        $assetNameMaxChars = max(8, min(60, (int) ($printSettings['asset_name_max_chars'] ?? 20)));
+        $assetName = Str::limit(trim((string) $asset->asset_name), $assetNameMaxChars, '');
 
         return [
             'asset_id' => $asset->id,
-            'asset_name' => $asset->asset_name,
+            'asset_name' => $assetName,
+            'asset_name_full' => $asset->asset_name,
             'tag_number' => $tag?->tag_number ?: $asset->tag_number,
+            'barcode_value' => $barcodeValue,
+            'qr_value' => $qrValue,
             'department_name' => $asset->department?->name,
             'location_name' => $asset->location?->name,
             'barcode_svg' => $barcodeEnabled && $barcodeValue ? $this->barcodeSvg($barcodeValue, $barcodeHeight) : null,
@@ -48,7 +54,7 @@ class BarcodeLabelService
 
     protected function barcodeSvg(string $value, int $height = 48): string
     {
-        $generator = new BarcodeGeneratorSVG();
+        $generator = new BarcodeGeneratorSVG;
 
         return $generator->getBarcode($value, $generator::TYPE_CODE_128, 2, $height);
     }
@@ -63,7 +69,7 @@ class BarcodeLabelService
 
     protected function barcodeHeightFor(int $labelHeightMm): int
     {
-        return max(24, min(56, (int) round($labelHeightMm * 1.5)));
+        return max(40, min(72, (int) round($labelHeightMm * 1.5)));
     }
 
     protected function qrSizeFor(int $labelWidthMm, int $labelHeightMm): int

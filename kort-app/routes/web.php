@@ -1,15 +1,16 @@
 <?php
 
+use App\Http\Controllers\Administration\RoleController;
+use App\Http\Controllers\Administration\UserController;
 use App\Http\Controllers\Assets\AssetCategoryController;
 use App\Http\Controllers\Assets\AssetController;
 use App\Http\Controllers\Assets\AssetIssueController;
+use App\Http\Controllers\Assets\AssetLabelController;
 use App\Http\Controllers\Assets\AssetReturnController;
 use App\Http\Controllers\Assets\AssetScanController;
 use App\Http\Controllers\Assets\AssetStatusController;
 use App\Http\Controllers\Assets\AssetTagController;
 use App\Http\Controllers\Assets\AssetTransferController;
-use App\Http\Controllers\Administration\RoleController;
-use App\Http\Controllers\Administration\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Inventory\InventoryCategoryController;
 use App\Http\Controllers\Inventory\InventoryItemController;
@@ -24,13 +25,13 @@ use App\Http\Controllers\Maintenance\MaintenanceController;
 use App\Http\Controllers\Organization\DepartmentController;
 use App\Http\Controllers\Organization\LocationController;
 use App\Http\Controllers\Procurement\GoodsReceiptController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Procurement\ProcurementApprovalController;
 use App\Http\Controllers\Procurement\PurchaseOrderController;
 use App\Http\Controllers\Procurement\PurchaseRequisitionController;
 use App\Http\Controllers\Procurement\SupplierController;
-use App\Http\Controllers\Security\AuditLogController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Search\UniversalSearchController;
+use App\Http\Controllers\Security\AuditLogController;
 use App\Http\Controllers\Settings\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,10 +60,16 @@ Route::middleware('auth')->group(function () {
         Route::get('scan/lookup', [AssetScanController::class, 'lookup'])->name('scan.lookup');
         Route::resource('categories', AssetCategoryController::class)->except('show');
         Route::post('tags/bulk-generate', [AssetTagController::class, 'bulkGenerate'])->name('tags.bulk-generate');
-        Route::get('labels/bulk-print', [AssetTagController::class, 'bulkPrint'])->name('labels.bulk-print');
+        Route::get('labels/bulk-print', [AssetLabelController::class, 'bulkPreview'])->name('labels.bulk-print');
+        Route::get('labels/bulk-print/tspl', [AssetLabelController::class, 'bulkTspl'])->name('labels.bulk-print.tspl');
+        Route::get('labels/bulk-print/direct', [AssetLabelController::class, 'bulkDirect'])->name('labels.bulk-print.direct');
+        Route::get('labels/reprint/{printLog}', [AssetLabelController::class, 'reprint'])->name('labels.reprint');
+        Route::get('labels/reprint/{printLog}/direct', [AssetLabelController::class, 'reprintDirect'])->name('labels.reprint.direct');
         Route::get('{asset}/tags/generate', [AssetTagController::class, 'create'])->name('tags.create');
         Route::post('{asset}/tags', [AssetTagController::class, 'store'])->name('tags.store');
-        Route::get('{asset}/labels/print', [AssetTagController::class, 'showLabel'])->name('labels.show');
+        Route::get('{asset}/labels/print', [AssetLabelController::class, 'show'])->name('labels.show');
+        Route::get('{asset}/labels/print/tspl', [AssetLabelController::class, 'tspl'])->name('labels.tspl');
+        Route::get('{asset}/labels/print/direct', [AssetLabelController::class, 'direct'])->name('labels.direct');
         Route::get('{asset}/issue', [AssetIssueController::class, 'create'])->name('issue.create');
         Route::post('{asset}/issue', [AssetIssueController::class, 'store'])->name('issue.store');
         Route::get('{asset}/return', [AssetReturnController::class, 'create'])->name('return.create');

@@ -13,8 +13,9 @@ import { AppButton } from '@/Components/ui/AppButton';
 import { AppLink } from '@/Components/ui/AppLink';
 import { AppTabs } from '@/Components/ui/AppTabs';
 import { AppLayout } from '@/Layouts/AppLayout';
-import type { InventoryBatchRecord, InventoryShowPageProps } from '@/types/inventory';
+import { unwrapResourceRecord } from '@/Lib/assetIdentity';
 import { formatShortDate } from '@/Lib/utils';
+import type { InventoryBatchRecord, InventoryShowPageProps, InventoryTransactionRecord } from '@/types/inventory';
 
 function isNearExpiry(batch: InventoryBatchRecord, nearExpiryDays: number) {
     if (!batch.expiry_date) {
@@ -32,9 +33,30 @@ function isNearExpiry(batch: InventoryBatchRecord, nearExpiryDays: number) {
     return diffDays <= nearExpiryDays;
 }
 
+function unwrapResourceArray<T>(value: unknown): T[] {
+    if (Array.isArray(value)) {
+        return value as T[];
+    }
+
+    if (value && typeof value === 'object') {
+        const data = (value as { data?: unknown }).data;
+        if (Array.isArray(data)) {
+            return data as T[];
+        }
+    }
+
+    return [];
+}
+
 export default function InventoryItemShowPage() {
     const { props } = useReactPage<InventoryShowPageProps>();
-    const { item, permissions, nearExpiryDays } = props;
+    const itemRecord = unwrapResourceRecord<InventoryShowPageProps['item']>(props.item as InventoryShowPageProps['item'] | { data?: InventoryShowPageProps['item'] });
+    const item = {
+        ...(itemRecord ?? {}),
+        batches: unwrapResourceArray<InventoryBatchRecord>(itemRecord?.batches),
+        transactions: unwrapResourceArray<InventoryTransactionRecord>(itemRecord?.transactions),
+    } as InventoryShowPageProps['item'];
+    const { permissions, nearExpiryDays } = props;
 
     const nearExpiryBatches = item.batches.filter((batch) => isNearExpiry(batch, nearExpiryDays));
     const quarantinedBatches = item.batches.filter((batch) => batch.status === 'quarantined');

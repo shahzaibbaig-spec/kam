@@ -28,7 +28,8 @@ class SystemSettingsService
     {
         return [
             'asset_tag_pattern' => config('kort.asset_tag_pattern'),
-            'label_size' => '50x25',
+            'label_size' => '38x28',
+            'printer_share_path' => env('LABEL_PRINTER_SHARE', ''),
             'barcode_enabled' => true,
             'qr_enabled' => true,
             'include_department' => true,

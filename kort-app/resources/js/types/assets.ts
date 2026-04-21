@@ -98,12 +98,64 @@ export interface AssetStatusHistoryRecord {
 }
 
 export interface AssetLabelPreview {
+    asset_id?: number;
+    asset_tag_id?: number | null;
     asset_name: string;
+    asset_name_full?: string | null;
     tag_number: string | null;
+    barcode_value?: string | null;
+    qr_value?: string | null;
     department_name: string | null;
     location_name: string | null;
     barcode_svg: string | null;
     qr_svg: string | null;
+    tspl?: string;
+}
+
+export interface PrinterSettingsRecord {
+    model: string;
+    dpi: number;
+    language: string;
+    label_width_mm: number;
+    label_height_mm: number;
+    gap_mm: number;
+    direction: number;
+    asset_name_max_chars: number;
+    qr_cell_size: number;
+    barcode_height: number;
+    text_x: number;
+    asset_name_y: number;
+    tag_number_y: number;
+    qr_x: number;
+    qr_y: number;
+    barcode_x: number;
+    barcode_y: number;
+    label_width_dots: number;
+    label_height_dots: number;
+}
+
+export interface AssetLabelPrintLogRecord {
+    id: number;
+    asset_id: number;
+    asset_tag_id: number | null;
+    asset_name_printed: string;
+    tag_number_printed: string;
+    barcode_value_printed: string | null;
+    qr_value_printed: string | null;
+    print_source: string;
+    output_format: string;
+    copies: number;
+    printer_model: string;
+    printer_language: string;
+    printer_dpi: number;
+    label_width_mm: number;
+    label_height_mm: number;
+    gap_mm: number;
+    direction: number;
+    printed_at: string | null;
+    printed_by_name: string | null;
+    reprinted_from_log_id: number | null;
+    created_at: string | null;
 }
 
 export interface AssetListRow {
@@ -315,4 +367,15 @@ export interface AssetTagGeneratePageProps extends ReactSharedPageProps {
     asset: AssetDetailModel;
     previewTag: string;
     canRegenerate: boolean;
+}
+
+export interface AssetLabelPreviewPageProps extends ReactSharedPageProps {
+    title: string;
+    mode: 'single' | 'bulk';
+    labels: AssetLabelPreview[];
+    tsplOutput: string;
+    printerSettings: PrinterSettingsRecord;
+    directPrinterTarget?: string | null;
+    selectedAssetIds: number[];
+    printLogs: AssetLabelPrintLogRecord[];
 }

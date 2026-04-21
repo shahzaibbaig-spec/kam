@@ -56,8 +56,12 @@ function toNumber(value: string | number | null | undefined) {
     return Number.isFinite(amount) ? amount : 0;
 }
 
+function safeBatches(item: { batches?: InventoryWorkflowItemOption['batches'] } | null | undefined) {
+    return Array.isArray(item?.batches) ? item.batches : [];
+}
+
 function workflowAvailable(item: InventoryWorkflowItemOption) {
-    return item.batches.reduce((total, batch) => total + toNumber(batch.available_quantity), 0);
+    return safeBatches(item).reduce((total, batch) => total + toNumber(batch.available_quantity), 0);
 }
 
 interface InventorySummaryLike {
@@ -84,6 +88,8 @@ export interface InventoryHeaderCardProps {
 }
 
 export function InventoryHeaderCard({ item, nearExpiryDays }: InventoryHeaderCardProps) {
+    const trackedBatches = safeBatches(item as unknown as { batches?: InventoryWorkflowItemOption['batches'] });
+
     return (
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}>
             <AppCard className="overflow-hidden border-blue-100">
@@ -140,7 +146,7 @@ export function InventoryHeaderCard({ item, nearExpiryDays }: InventoryHeaderCar
                                 <div className="rounded-[1.75rem] border border-slate-100 bg-white p-5 shadow-sm">
                                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Batch watch</p>
                                     <div className="mt-4 space-y-2 text-sm text-slate-600">
-                                        <p>{item.batches.length} tracked batches</p>
+                                        <p>{trackedBatches.length} tracked batches</p>
                                         <p>{item.near_expiry_batch_count ?? 0} near expiry within {nearExpiryDays} days</p>
                                         <p>{item.quarantined_quantity} quarantined • {item.damaged_quantity} damaged • {item.expired_quantity} expired</p>
                                     </div>
@@ -326,7 +332,8 @@ export function IssueStockSummaryCard({ item }: { item: InventoryWorkflowItemOpt
         return null;
     }
 
-    const warnings = item.batches.filter((batch) => ['quarantined', 'damaged', 'expired'].includes(batch.status)).length;
+    const batches = safeBatches(item);
+    const warnings = batches.filter((batch) => ['quarantined', 'damaged', 'expired'].includes(batch.status)).length;
 
     return (
         <InventoryWorkflowSummaryCard
@@ -344,7 +351,7 @@ export function IssueStockSummaryCard({ item }: { item: InventoryWorkflowItemOpt
             description="Review usable balance and batch risk before issuing stock."
             footer={
                 <div className="space-y-2 text-sm text-slate-600">
-                    <p>Tracked batches: <span className="font-semibold text-slate-900">{item.batches.length}</span></p>
+                    <p>Tracked batches: <span className="font-semibold text-slate-900">{batches.length}</span></p>
                     <p>Restricted batches: <span className="font-semibold text-slate-900">{warnings}</span></p>
                 </div>
             }

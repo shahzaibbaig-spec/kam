@@ -101,7 +101,7 @@ export default function InventoryAdjustPage() {
     };
 
     const itemFor = (itemId: string) => workflowItems.find((item) => item.id === Number(itemId)) ?? null;
-    const batchFor = (itemId: string, batchId: string) => itemFor(itemId)?.batches.find((batch) => batch.id === Number(batchId)) ?? null;
+    const batchFor = (itemId: string, batchId: string) => (itemFor(itemId)?.batches ?? []).find((batch) => batch.id === Number(batchId)) ?? null;
     const backHref = selectedItem ? route('inventory.items.show', selectedItem.id) : route('inventory.items.index');
 
     const submit = () => {
