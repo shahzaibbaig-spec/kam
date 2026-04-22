@@ -17,6 +17,7 @@ class LabelSettingsRequest extends FormRequest
             'asset_tag_pattern' => ['required', 'string', 'max:255'],
             'label_size' => ['required', 'string', 'max:40'],
             'printer_share_path' => ['nullable', 'string', 'max:255'],
+            'client_printer_name' => ['nullable', 'string', 'max:120'],
             'barcode_enabled' => ['required', 'boolean'],
             'qr_enabled' => ['required', 'boolean'],
             'include_department' => ['required', 'boolean'],

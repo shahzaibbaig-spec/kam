@@ -13,6 +13,7 @@ export default function SettingsLabelsPage() {
         asset_tag_pattern: props.settings.asset_tag_pattern ?? '',
         label_size: props.settings.label_size ?? '38x28',
         printer_share_path: props.settings.printer_share_path ?? '',
+        client_printer_name: props.settings.client_printer_name ?? 'TSC TTP-244 Pro',
         barcode_enabled: props.settings.barcode_enabled ?? true,
         qr_enabled: props.settings.qr_enabled ?? true,
         include_department: props.settings.include_department ?? true,
@@ -56,13 +57,26 @@ export default function SettingsLabelsPage() {
                         <SettingsField
                             label="Printer Share Path"
                             error={form.errors.printer_share_path}
-                            hint="Use UNC format for direct thermal printing, for example \\localhost\\TSC."
+                            hint="Optional server-side Windows printing (UNC), for example \\localhost\\TSC."
                             className="md:col-span-2 xl:col-span-2"
                         >
                             <AppInput
                                 value={form.data.printer_share_path}
                                 onChange={(event) => form.setData('printer_share_path', event.target.value)}
                                 placeholder="\\localhost\\TSC"
+                                disabled={!props.permissions.update}
+                            />
+                        </SettingsField>
+                        <SettingsField
+                            label="Local Printer Name"
+                            error={form.errors.client_printer_name}
+                            hint="Used by one-click browser printing (QZ Tray) on live hosting."
+                            className="md:col-span-2 xl:col-span-2"
+                        >
+                            <AppInput
+                                value={form.data.client_printer_name}
+                                onChange={(event) => form.setData('client_printer_name', event.target.value)}
+                                placeholder="TSC TTP-244 Pro"
                                 disabled={!props.permissions.update}
                             />
                         </SettingsField>
@@ -116,6 +130,7 @@ export default function SettingsLabelsPage() {
                         asset_tag_pattern: form.data.asset_tag_pattern,
                         label_size: form.data.label_size,
                         printer_share_path: form.data.printer_share_path,
+                        client_printer_name: form.data.client_printer_name,
                         barcode_enabled: form.data.barcode_enabled,
                         qr_enabled: form.data.qr_enabled,
                         include_department: form.data.include_department,

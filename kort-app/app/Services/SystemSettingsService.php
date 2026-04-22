@@ -30,6 +30,7 @@ class SystemSettingsService
             'asset_tag_pattern' => config('kort.asset_tag_pattern'),
             'label_size' => '38x28',
             'printer_share_path' => env('LABEL_PRINTER_SHARE', ''),
+            'client_printer_name' => 'TSC TTP-244 Pro',
             'barcode_enabled' => true,
             'qr_enabled' => true,
             'include_department' => true,

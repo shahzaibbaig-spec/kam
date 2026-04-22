@@ -37,6 +37,7 @@ export interface LabelSettingsModel {
     asset_tag_pattern: string;
     label_size: string;
     printer_share_path: string;
+    client_printer_name: string;
     barcode_enabled: boolean;
     qr_enabled: boolean;
     include_department: boolean;
@@ -74,6 +75,7 @@ export interface LabelSettingsFormData {
     asset_tag_pattern: string;
     label_size: string;
     printer_share_path: string;
+    client_printer_name: string;
     barcode_enabled: boolean;
     qr_enabled: boolean;
     include_department: boolean;

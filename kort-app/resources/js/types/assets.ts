@@ -376,6 +376,7 @@ export interface AssetLabelPreviewPageProps extends ReactSharedPageProps {
     tsplOutput: string;
     printerSettings: PrinterSettingsRecord;
     directPrinterTarget?: string | null;
+    localPrinterName?: string | null;
     selectedAssetIds: number[];
     printLogs: AssetLabelPrintLogRecord[];
 }

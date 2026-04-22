@@ -2,14 +2,38 @@ import { ClipboardCopy, Printer, RefreshCcw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { useReactPage } from '@/Bridge/ReactPageContext';
+import { AppAlert } from '@/Components/data-display/AppAlert';
 import { AppBadge } from '@/Components/data-display/AppBadge';
 import { AppCard, AppCardContent, AppCardDescription, AppCardHeader, AppCardTitle } from '@/Components/data-display/AppCard';
 import { LabelPreviewCard } from '@/Components/domain/assets/LabelPreviewCard';
 import { PageHeader } from '@/Components/layout/PageHeader';
 import { AppButton } from '@/Components/ui/AppButton';
 import { AppLayout } from '@/Layouts/AppLayout';
-import type { AssetLabelPreviewPageProps } from '@/types/assets';
 import { formatDateTime, formatTitleCase } from '@/Lib/utils';
+import type { AssetLabelPreviewPageProps } from '@/types/assets';
+
+type LocalPrintState = 'idle' | 'printing' | 'printed' | 'failed';
+
+interface QzTrayApi {
+    websocket: {
+        isActive: () => boolean;
+        connect: (options?: { retries?: number; delay?: number }) => Promise<void>;
+    };
+    printers: {
+        find: (printer: string) => Promise<string>;
+        getDefault: () => Promise<string>;
+    };
+    configs: {
+        create: (printer: string, options?: Record<string, unknown>) => unknown;
+    };
+    print: (config: unknown, data: Array<string | Record<string, unknown>>) => Promise<void>;
+}
+
+declare global {
+    interface Window {
+        qz?: QzTrayApi;
+    }
+}
 
 function buildBulkTsplUrl(assetIds: number[]): string {
     const params = new URLSearchParams();
@@ -31,9 +55,93 @@ function buildBulkDirectUrl(assetIds: number[]): string {
     return `${route('assets.labels.bulk-print.direct')}?${params.toString()}`;
 }
 
+function extractShareName(uncPath: string | null | undefined): string | null {
+    const source = (uncPath ?? '').trim();
+    if (source === '') {
+        return null;
+    }
+
+    const normalized = source.replaceAll('/', '\\').replace(/^\\+/, '');
+    const segments = normalized.split('\\').filter((segment) => segment.trim() !== '');
+
+    return segments.length >= 2 ? segments[1] : null;
+}
+
+async function loadQzTray(): Promise<QzTrayApi> {
+    if (window.qz) {
+        return window.qz;
+    }
+
+    const existing = document.querySelector('script[data-qz-tray-script="true"]') as HTMLScriptElement | null;
+    if (existing) {
+        await new Promise<void>((resolve, reject) => {
+            if (window.qz) {
+                resolve();
+                return;
+            }
+
+            existing.addEventListener('load', () => resolve(), { once: true });
+            existing.addEventListener('error', () => reject(new Error('Failed to load QZ Tray script.')), { once: true });
+        });
+
+        if (!window.qz) {
+            throw new Error('QZ Tray library loaded but API is unavailable.');
+        }
+
+        return window.qz;
+    }
+
+    await new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js';
+        script.async = true;
+        script.dataset.qzTrayScript = 'true';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Unable to load QZ Tray script from CDN.'));
+        document.head.appendChild(script);
+    });
+
+    if (!window.qz) {
+        throw new Error('QZ Tray script loaded, but printer API is still unavailable.');
+    }
+
+    return window.qz;
+}
+
+async function connectQz(qz: QzTrayApi): Promise<void> {
+    if (!qz.websocket.isActive()) {
+        await qz.websocket.connect({ retries: 1, delay: 0 });
+    }
+}
+
+async function resolvePrinter(qz: QzTrayApi, candidates: string[]): Promise<string> {
+    const uniqueCandidates = Array.from(
+        new Set(
+            candidates
+                .map((candidate) => candidate.trim())
+                .filter((candidate) => candidate !== ''),
+        ),
+    );
+
+    for (const candidate of uniqueCandidates) {
+        try {
+            const matched = await qz.printers.find(candidate);
+            if (matched) {
+                return matched;
+            }
+        } catch {
+            // continue trying candidates
+        }
+    }
+
+    return qz.printers.getDefault();
+}
+
 export default function AssetLabelPreviewPage() {
     const { props } = useReactPage<AssetLabelPreviewPageProps>();
     const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+    const [localPrintState, setLocalPrintState] = useState<LocalPrintState>('idle');
+    const [localPrintMessage, setLocalPrintMessage] = useState<string | null>(null);
     const printLogs = Array.isArray(props.printLogs)
         ? props.printLogs
         : Array.isArray((props.printLogs as unknown as { data?: unknown[] })?.data)
@@ -62,6 +170,18 @@ export default function AssetLabelPreviewPage() {
 
         return props.selectedAssetIds.length > 0 ? buildBulkDirectUrl(props.selectedAssetIds) : null;
     }, [directPrinterConfigured, props.mode, props.selectedAssetIds]);
+    const localPrinterCandidates = useMemo(() => {
+        const shareName = extractShareName(props.directPrinterTarget);
+        const normalizedShareName = shareName ? shareName.replaceAll('_', ' ') : '';
+        const configuredName = (props.localPrinterName ?? '').trim();
+
+        return [
+            configuredName,
+            props.printerSettings.model,
+            shareName ?? '',
+            normalizedShareName,
+        ].filter((value) => value.trim() !== '');
+    }, [props.directPrinterTarget, props.localPrinterName, props.printerSettings.model]);
 
     const copyTspl = async () => {
         try {
@@ -72,6 +192,29 @@ export default function AssetLabelPreviewPage() {
         }
 
         window.setTimeout(() => setCopyState('idle'), 1800);
+    };
+
+    const printLocally = async () => {
+        setLocalPrintState('printing');
+        setLocalPrintMessage(null);
+
+        try {
+            const qz = await loadQzTray();
+            await connectQz(qz);
+            const printer = await resolvePrinter(qz, localPrinterCandidates);
+            const config = qz.configs.create(printer, { encoding: 'UTF-8' });
+
+            await qz.print(config, [props.tsplOutput]);
+
+            setLocalPrintState('printed');
+            setLocalPrintMessage(`Sent to ${printer}.`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to send TSPL to local printer.';
+            setLocalPrintState('failed');
+            setLocalPrintMessage(message);
+        } finally {
+            window.setTimeout(() => setLocalPrintState('idle'), 2200);
+        }
     };
 
     return (
@@ -87,19 +230,24 @@ export default function AssetLabelPreviewPage() {
                                 <Printer className="h-4 w-4" />
                                 Print browser preview
                             </AppButton>
+                            <AppButton type="button" onClick={printLocally} loading={localPrintState === 'printing'}>
+                                <Printer className="h-4 w-4" />
+                                {localPrintState === 'idle'
+                                    ? 'One-click thermal print'
+                                    : localPrintState === 'printing'
+                                      ? 'Sending...'
+                                      : localPrintState === 'printed'
+                                        ? 'Printed'
+                                        : 'Retry print'}
+                            </AppButton>
                             {directPrintUrl ? (
-                                <AppButton asChild>
+                                <AppButton asChild variant="outline">
                                     <a href={directPrintUrl}>
                                         <Printer className="h-4 w-4" />
-                                        Send to thermal printer
+                                        Server-side print
                                     </a>
                                 </AppButton>
-                            ) : (
-                                <AppButton type="button" disabled>
-                                    <Printer className="h-4 w-4" />
-                                    Send to thermal printer
-                                </AppButton>
-                            )}
+                            ) : null}
                             {tsplDownloadUrl ? (
                                 <AppButton asChild variant="outline">
                                     <a href={tsplDownloadUrl} target="_blank" rel="noreferrer">
@@ -116,6 +264,14 @@ export default function AssetLabelPreviewPage() {
                         </>
                     }
                 />
+
+                {localPrintState === 'failed' && localPrintMessage ? (
+                    <AppAlert
+                        variant="warning"
+                        title="Local print bridge unavailable"
+                        description={`Install/open QZ Tray on this computer, then try again. Details: ${localPrintMessage}`}
+                    />
+                ) : null}
 
                 <AppCard className="print:hidden">
                     <AppCardHeader className="border-b border-slate-100">
@@ -140,21 +296,17 @@ export default function AssetLabelPreviewPage() {
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500">Gap / Direction</p>
-                            <p className="mt-1 font-medium text-slate-900">
-                                {props.printerSettings.gap_mm} mm / {props.printerSettings.direction}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-slate-500">Direct print target</p>
+                            <p className="text-sm text-slate-500">Server target (optional)</p>
                             <p className="mt-1 font-medium text-slate-900">{props.directPrinterTarget || 'Not configured'}</p>
                         </div>
+                        <div>
+                            <p className="text-sm text-slate-500">Local printer name</p>
+                            <p className="mt-1 font-medium text-slate-900">{props.localPrinterName || props.printerSettings.model}</p>
+                        </div>
                     </AppCardContent>
-                    {!directPrinterConfigured ? (
-                        <p className="px-6 pb-6 text-sm text-amber-700">
-                            Configure a printer share path in Settings {'>'} Labels (example: {'\\\\localhost\\\\TSC'}) to enable one-click thermal printing.
-                        </p>
-                    ) : null}
+                    <p className="px-6 pb-6 text-sm text-slate-600">
+                        For live/shared hosting one-click printing, install QZ Tray on each client PC and keep this page open while printing.
+                    </p>
                 </AppCard>
 
                 <div className="grid gap-6 xl:grid-cols-2">
@@ -248,3 +400,4 @@ export default function AssetLabelPreviewPage() {
         </AppLayout>
     );
 }
+
