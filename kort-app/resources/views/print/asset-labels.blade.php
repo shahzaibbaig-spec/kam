@@ -251,12 +251,6 @@
         }
 
         @media print {
-            html,
-            body {
-                width: var(--label-width);
-                height: var(--label-height);
-            }
-
             body {
                 background: #ffffff;
                 padding: 0;
@@ -271,21 +265,20 @@
             }
 
             .label {
-                width: calc(var(--label-width) - (var(--print-margin) * 2));
-                height: calc(var(--label-height) - (var(--print-margin) * 2));
+                width: var(--label-width);
+                height: var(--label-height);
                 min-height: 0;
-                margin: var(--print-margin);
+                margin: 0;
                 border: 0;
                 border-radius: 0;
                 box-shadow: none;
                 break-inside: avoid-page;
-                page-break-after: always;
-                break-after: page;
+                page-break-inside: avoid;
             }
 
-            .label:last-child {
-                page-break-after: auto;
-                break-after: auto;
+            .label + .label {
+                page-break-before: always;
+                break-before: page;
             }
         }
     </style>
