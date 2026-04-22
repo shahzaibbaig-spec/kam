@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
         Route::get('scan/lookup', [AssetScanController::class, 'lookup'])->name('scan.lookup');
         Route::resource('categories', AssetCategoryController::class)->except('show');
         Route::post('tags/bulk-generate', [AssetTagController::class, 'bulkGenerate'])->name('tags.bulk-generate');
+        Route::get('labels/bulk-print/browser', [AssetTagController::class, 'bulkPrint'])->name('labels.bulk-print.browser');
         Route::get('labels/bulk-print', [AssetLabelController::class, 'bulkPreview'])->name('labels.bulk-print');
         Route::get('labels/bulk-print/tspl', [AssetLabelController::class, 'bulkTspl'])->name('labels.bulk-print.tspl');
         Route::get('labels/bulk-print/direct', [AssetLabelController::class, 'bulkDirect'])->name('labels.bulk-print.direct');
@@ -67,6 +68,7 @@ Route::middleware('auth')->group(function () {
         Route::get('labels/reprint/{printLog}/direct', [AssetLabelController::class, 'reprintDirect'])->name('labels.reprint.direct');
         Route::get('{asset}/tags/generate', [AssetTagController::class, 'create'])->name('tags.create');
         Route::post('{asset}/tags', [AssetTagController::class, 'store'])->name('tags.store');
+        Route::get('{asset}/labels/print/browser', [AssetTagController::class, 'showLabel'])->name('labels.browser-print');
         Route::get('{asset}/labels/print', [AssetLabelController::class, 'show'])->name('labels.show');
         Route::get('{asset}/labels/print/tspl', [AssetLabelController::class, 'tspl'])->name('labels.tspl');
         Route::get('{asset}/labels/print/direct', [AssetLabelController::class, 'direct'])->name('labels.direct');

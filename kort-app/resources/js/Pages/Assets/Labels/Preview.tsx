@@ -32,6 +32,16 @@ function buildBulkDirectUrl(assetIds: number[]): string {
     return `${route('assets.labels.bulk-print.direct')}?${params.toString()}`;
 }
 
+function buildBulkBrowserPrintUrl(assetIds: number[]): string {
+    const params = new URLSearchParams();
+
+    assetIds.forEach((id, index) => {
+        params.append(`assets[${index}]`, String(id));
+    });
+
+    return `${route('assets.labels.bulk-print.browser')}?${params.toString()}`;
+}
+
 function extractShareName(uncPath: string | null | undefined): string | null {
     const source = (uncPath ?? '').trim();
     if (source === '') {
@@ -75,6 +85,14 @@ export default function AssetLabelPreviewPage() {
 
         return props.selectedAssetIds.length > 0 ? buildBulkDirectUrl(props.selectedAssetIds) : null;
     }, [directPrinterConfigured, props.mode, props.selectedAssetIds]);
+    const browserPrintUrl = useMemo(() => {
+        if (props.mode === 'single') {
+            const [assetId] = props.selectedAssetIds;
+            return assetId ? route('assets.labels.browser-print', assetId) : null;
+        }
+
+        return props.selectedAssetIds.length > 0 ? buildBulkBrowserPrintUrl(props.selectedAssetIds) : null;
+    }, [props.mode, props.selectedAssetIds]);
     const serverShareName = useMemo(() => extractShareName(props.directPrinterTarget), [props.directPrinterTarget]);
 
     const copyTspl = async () => {
@@ -88,10 +106,6 @@ export default function AssetLabelPreviewPage() {
         window.setTimeout(() => setCopyState('idle'), 1800);
     };
 
-    const printLocally = () => {
-        window.print();
-    };
-
     return (
         <AppLayout breadcrumbs={[{ label: 'Assets', href: route('assets.index') }, { label: 'Label Preview' }]}>
             <div className="space-y-6">
@@ -101,14 +115,19 @@ export default function AssetLabelPreviewPage() {
                     meta={<AppBadge variant="outline">{labelCount} label{labelCount === 1 ? '' : 's'}</AppBadge>}
                     actions={
                         <>
-                            <AppButton type="button" variant="outline" onClick={() => window.print()}>
-                                <Printer className="h-4 w-4" />
-                                Print browser preview
-                            </AppButton>
-                            <AppButton type="button" onClick={printLocally}>
-                                <Printer className="h-4 w-4" />
-                                One-click thermal print
-                            </AppButton>
+                            {browserPrintUrl ? (
+                                <AppButton asChild>
+                                    <a href={browserPrintUrl} target="_blank" rel="noreferrer">
+                                        <Printer className="h-4 w-4" />
+                                        One-click thermal print
+                                    </a>
+                                </AppButton>
+                            ) : (
+                                <AppButton type="button" disabled>
+                                    <Printer className="h-4 w-4" />
+                                    One-click thermal print
+                                </AppButton>
+                            )}
                             {directPrintUrl ? (
                                 <AppButton asChild variant="outline">
                                     <a href={directPrintUrl}>

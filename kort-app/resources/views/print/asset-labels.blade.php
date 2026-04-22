@@ -323,5 +323,20 @@
             </article>
         @endforeach
     </div>
+@if (($printMode ?? false) === true)
+    <script>
+        window.addEventListener('load', function () {
+            window.setTimeout(function () {
+                window.print();
+            }, 120);
+        }, { once: true });
+
+        window.addEventListener('afterprint', function () {
+            if (window.opener) {
+                window.close();
+            }
+        });
+    </script>
+@endif
 </body>
 </html>
