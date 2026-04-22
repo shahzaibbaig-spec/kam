@@ -44,7 +44,6 @@ class AssetLabelController extends Controller
             'tsplOutput' => $job['tspl'],
             'printerSettings' => $job['settings'],
             'directPrinterTarget' => $this->configuredPrinterTarget($settingsService),
-            'localPrinterName' => $this->configuredLocalPrinterName($settingsService, $job['settings']),
             'selectedAssetIds' => [$asset->id],
             'printLogs' => AssetLabelPrintLogResource::collection(
                 AssetLabelPrintLog::query()
@@ -76,7 +75,6 @@ class AssetLabelController extends Controller
             'tsplOutput' => $job['tspl'],
             'printerSettings' => $job['settings'],
             'directPrinterTarget' => $this->configuredPrinterTarget($settingsService),
-            'localPrinterName' => $this->configuredLocalPrinterName($settingsService, $job['settings']),
             'selectedAssetIds' => $assets->pluck('id')->all(),
             'printLogs' => AssetLabelPrintLogResource::collection(
                 AssetLabelPrintLog::query()
@@ -369,25 +367,6 @@ class AssetLabelController extends Controller
         $trimmed = trim($value);
 
         return $trimmed !== '' ? $trimmed : null;
-    }
-
-    protected function configuredLocalPrinterName(SystemSettingsService $settingsService, array $printerSettings): string
-    {
-        $settings = $settingsService->labelValues();
-        $explicit = trim((string) ($settings['client_printer_name'] ?? ''));
-        if ($explicit !== '') {
-            return $explicit;
-        }
-
-        $sharePath = trim((string) ($settings['printer_share_path'] ?? ''));
-        if ($sharePath !== '') {
-            $segments = array_values(array_filter(explode('\\', str_replace('/', '\\', $sharePath))));
-            if (count($segments) >= 2) {
-                return (string) $segments[1];
-            }
-        }
-
-        return (string) ($printerSettings['model'] ?? 'TSC TTP-244 Pro');
     }
 
     protected function tsplResponse(string $contents, string $filename): HttpResponse
