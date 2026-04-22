@@ -8,6 +8,7 @@
     $barcodeEnabled = (bool) ($printSettings['barcode_enabled'] ?? true);
     $qrEnabled = (bool) ($printSettings['qr_enabled'] ?? true);
     $compactLayout = (bool) ($printSettings['compact_layout'] ?? false);
+    $textMaxChars = 20;
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -102,10 +103,10 @@
         .label {
             width: var(--label-width);
             min-height: var(--label-height);
-            display: grid;
-            grid-template-rows: auto auto auto 1fr auto;
-            gap: 0.8mm;
-            padding: 1.4mm;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 1.2mm;
             border: 1px solid var(--line);
             border-radius: 2.2mm;
             background: var(--surface);
@@ -113,72 +114,92 @@
             overflow: hidden;
         }
 
-        .label-header {
+        .top-row {
             display: flex;
-            align-items: baseline;
+            align-items: flex-start;
             justify-content: space-between;
-            gap: 6px;
+            gap: 1.1mm;
+            min-height: 11.8mm;
+        }
+
+        .text-column {
+            flex: 1 1 auto;
+            min-width: 0;
         }
 
         .system-name {
             margin: 0;
-            font-size: 2.1mm;
+            font-size: 1.9mm;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--accent);
         }
 
-        .tag-number {
-            margin: 0;
-            font-size: 2.2mm;
-            font-weight: 700;
-            color: var(--ink);
-            text-align: right;
-            word-break: break-word;
-        }
-
         .asset-name {
             margin: 0;
+            margin-top: 0.6mm;
             font-size: 2.9mm;
-            line-height: 1.15;
             font-weight: 700;
             color: var(--ink);
-            word-break: break-word;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tag-number {
+            margin: 0;
+            margin-top: 0.4mm;
+            font-size: 2.4mm;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .context-line {
             margin: 0;
-            font-size: 2.1mm;
-            line-height: 1.25;
-            color: var(--muted);
-            word-break: break-word;
-        }
-
-        .codes {
-            display: grid;
-            gap: 0.8mm;
-            align-items: stretch;
             margin-top: 0.4mm;
+            font-size: 1.8mm;
+            line-height: 1.1;
+            color: #111827;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .codes.codes-split {
-            grid-template-columns: 2fr 1fr;
-        }
-
-        .codes.codes-single {
-            grid-template-columns: 1fr;
-        }
-
-        .barcode-panel,
         .qr-panel {
-            border: 0.2mm solid var(--line);
-            border-radius: 1mm;
-            padding: 0.6mm;
+            flex: 0 0 auto;
+            width: 9.8mm;
+            height: 9.8mm;
+            border: 0.2mm solid #9ca3af;
+            border-radius: 0.8mm;
+            padding: 0.25mm;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 9mm;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .qr-panel svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .barcode-panel {
+            margin-top: auto;
+            border: 0.2mm solid #9ca3af;
+            border-radius: 0.8mm;
+            padding: 0.35mm;
+            height: 8.8mm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
             background: #ffffff;
         }
@@ -189,20 +210,14 @@
             height: 100%;
         }
 
-        .qr-panel svg {
-            display: block;
-            width: 100%;
-            height: auto;
-            max-height: 100%;
-        }
-
         .label-footer {
             margin: 0;
-            padding-top: 0.5mm;
-            border-top: 0.2mm dashed var(--line);
-            font-size: 1.9mm;
-            line-height: 1.25;
-            color: var(--muted);
+            margin-top: 0.5mm;
+            padding-top: 0.3mm;
+            border-top: 0.2mm dashed #9ca3af;
+            font-size: 1.6mm;
+            line-height: 1.1;
+            color: #111827;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -210,28 +225,38 @@
 
         body.compact-layout .label {
             padding: 1mm;
-            gap: 0.5mm;
         }
 
         body.compact-layout .asset-name {
-            font-size: 2.5mm;
+            font-size: 2.7mm;
         }
 
         body.compact-layout .context-line {
-            font-size: 1.9mm;
-        }
-
-        body.compact-layout .barcode-panel,
-        body.compact-layout .qr-panel {
-            min-height: 7mm;
-            padding: 0.4mm;
-        }
-
-        body.compact-layout .label-footer {
             font-size: 1.7mm;
         }
 
+        body.compact-layout .barcode-panel {
+            height: 8.2mm;
+            padding: 0.25mm;
+        }
+
+        body.compact-layout .qr-panel {
+            width: 9.2mm;
+            height: 9.2mm;
+            padding: 0.2mm;
+        }
+
+        body.compact-layout .label-footer {
+            font-size: 1.5mm;
+        }
+
         @media print {
+            html,
+            body {
+                width: var(--label-width);
+                height: var(--label-height);
+            }
+
             body {
                 background: #ffffff;
                 padding: 0;
@@ -253,6 +278,7 @@
                 border: 0;
                 border-radius: 0;
                 box-shadow: none;
+                break-inside: avoid-page;
                 page-break-after: always;
                 break-after: page;
             }
@@ -280,6 +306,18 @@
     <div class="label-grid">
         @foreach ($labels as $label)
             @php
+                $assetName = trim((string) ($label['asset_name'] ?? ''));
+                if ($assetName === '') {
+                    $assetName = trim((string) ($label['asset_name_full'] ?? 'Asset'));
+                }
+                $assetName = mb_strimwidth($assetName, 0, $textMaxChars, '');
+
+                $tagNumber = trim((string) ($label['tag_number'] ?? ''));
+                if ($tagNumber === '') {
+                    $tagNumber = trim((string) ($label['barcode_value'] ?? 'TAG-PENDING'));
+                }
+                $tagNumber = mb_strimwidth($tagNumber, 0, 24, '');
+
                 $contextParts = [];
 
                 if ($includeDepartment && filled($label['department_name'] ?? null)) {
@@ -294,31 +332,28 @@
                 $hasQr = $qrEnabled && ! empty($label['qr_svg']);
             @endphp
             <article class="label">
-                <div class="label-header">
-                    <p class="system-name">Hospital Asset</p>
-                    <p class="tag-number">{{ $label['tag_number'] ?? 'Tag pending' }}</p>
-                </div>
-
-                <h2 class="asset-name">{{ $label['asset_name'] }}</h2>
-
-                @if ($contextParts !== [])
-                    <p class="context-line">{{ implode(' / ', $contextParts) }}</p>
-                @endif
-
-                @if ($hasBarcode || $hasQr)
-                    <div class="codes {{ $hasBarcode && $hasQr ? 'codes-split' : 'codes-single' }}">
-                        @if ($hasBarcode)
-                            <div class="barcode-panel">{!! $label['barcode_svg'] !!}</div>
-                        @endif
-
-                        @if ($hasQr)
-                            <div class="qr-panel">{!! $label['qr_svg'] !!}</div>
+                <div class="top-row">
+                    <div class="text-column">
+                        <p class="system-name">Hospital Asset</p>
+                        <h2 class="asset-name">{{ $assetName !== '' ? $assetName : 'Asset' }}</h2>
+                        <p class="tag-number">{{ $tagNumber !== '' ? $tagNumber : 'TAG-PENDING' }}</p>
+                        @if ($contextParts !== [])
+                            <p class="context-line">{{ implode(' / ', $contextParts) }}</p>
                         @endif
                     </div>
+                    @if ($hasQr)
+                        <div class="qr-panel">{!! $label['qr_svg'] !!}</div>
+                    @endif
+                </div>
+
+                @if ($hasBarcode)
+                    <div class="barcode-panel">{!! $label['barcode_svg'] !!}</div>
                 @endif
 
                 @if ($labelFooter !== '')
                     <p class="label-footer">{{ $labelFooter }}</p>
+                @elseif (! $hasBarcode && ! $hasQr)
+                    <div class="label-footer">Barcode/QR unavailable for this asset.</div>
                 @endif
             </article>
         @endforeach

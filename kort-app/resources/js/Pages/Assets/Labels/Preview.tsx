@@ -119,7 +119,7 @@ export default function AssetLabelPreviewPage() {
                                 <AppButton asChild>
                                     <a href={browserPrintUrl} target="_blank" rel="noreferrer">
                                         <Printer className="h-4 w-4" />
-                                        One-click thermal print
+                                        One-click thermal print ({labelCount})
                                     </a>
                                 </AppButton>
                             ) : (
