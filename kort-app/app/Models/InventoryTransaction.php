@@ -29,6 +29,10 @@ class InventoryTransaction extends Model
         'to_department_id',
         'issued_to_user_id',
         'received_from_user_id',
+        'patient_id',
+        'prescription_id',
+        'pharmacy_dispensing_id',
+        'pharmacist_id',
         'reference_type',
         'reference_id',
         'reference_number',
@@ -93,5 +97,25 @@ class InventoryTransaction extends Model
     public function performedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    public function patient(): BelongsTo
+    {
+        return $this->belongsTo(Patient::class);
+    }
+
+    public function prescription(): BelongsTo
+    {
+        return $this->belongsTo(PatientPrescription::class, 'prescription_id');
+    }
+
+    public function pharmacyDispensing(): BelongsTo
+    {
+        return $this->belongsTo(PharmacyDispensing::class, 'pharmacy_dispensing_id');
+    }
+
+    public function pharmacist(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pharmacist_id');
     }
 }

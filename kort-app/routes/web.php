@@ -24,6 +24,14 @@ use App\Http\Controllers\Inventory\StockTransferController;
 use App\Http\Controllers\Maintenance\MaintenanceController;
 use App\Http\Controllers\Organization\DepartmentController;
 use App\Http\Controllers\Organization\LocationController;
+use App\Http\Controllers\Pharmacy\DispensingController;
+use App\Http\Controllers\Pharmacy\PharmacyReportController;
+use App\Http\Controllers\Pharmacy\PrescriptionLookupController;
+use App\Http\Controllers\Patients\PatientAdmissionController;
+use App\Http\Controllers\Patients\PatientController;
+use App\Http\Controllers\Patients\PatientDiagnosisController;
+use App\Http\Controllers\Patients\PatientPrescriptionController;
+use App\Http\Controllers\Patients\PatientVisitController;
 use App\Http\Controllers\Procurement\GoodsReceiptController;
 use App\Http\Controllers\Procurement\ProcurementApprovalController;
 use App\Http\Controllers\Procurement\PurchaseOrderController;
@@ -83,6 +91,46 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('assets', AssetController::class);
+
+    Route::prefix('patients')->name('patients.')->group(function () {
+        Route::get('search', [PatientController::class, 'search'])->name('search');
+        Route::get('queue', [PatientController::class, 'queue'])->name('queue');
+        Route::get('{patient}/history', [PatientController::class, 'history'])->name('history');
+        Route::post('{patient}/documents', [PatientController::class, 'uploadDocument'])->name('documents.store');
+
+        Route::get('{patient}/admissions/create', [PatientAdmissionController::class, 'create'])->name('admissions.create');
+        Route::post('{patient}/admissions', [PatientAdmissionController::class, 'store'])->name('admissions.store');
+        Route::get('{patient}/admissions/{admission}', [PatientAdmissionController::class, 'show'])->name('admissions.show');
+        Route::match(['put', 'patch'], '{patient}/admissions/{admission}', [PatientAdmissionController::class, 'update'])->name('admissions.update');
+        Route::post('{patient}/admissions/{admission}/discharge', [PatientAdmissionController::class, 'discharge'])->name('admissions.discharge');
+        Route::post('{patient}/admissions/{admission}/change-doctor', [PatientAdmissionController::class, 'changeDoctor'])->name('admissions.change-doctor');
+
+        Route::get('{patient}/diagnoses/create', [PatientDiagnosisController::class, 'create'])->name('diagnoses.create');
+        Route::post('{patient}/diagnoses', [PatientDiagnosisController::class, 'store'])->name('diagnoses.store');
+        Route::get('{patient}/diagnoses/{diagnosis}/edit', [PatientDiagnosisController::class, 'edit'])->name('diagnoses.edit');
+        Route::match(['put', 'patch'], '{patient}/diagnoses/{diagnosis}', [PatientDiagnosisController::class, 'update'])->name('diagnoses.update');
+
+        Route::post('{patient}/visits', [PatientVisitController::class, 'store'])->name('visits.store');
+        Route::match(['put', 'patch'], '{patient}/visits/{visit}', [PatientVisitController::class, 'update'])->name('visits.update');
+        Route::post('{patient}/visits/{visit}/change-doctor', [PatientVisitController::class, 'changeDoctor'])->name('visits.change-doctor');
+
+        Route::get('{patient}/visits/{visit}/prescriptions/create', [PatientPrescriptionController::class, 'create'])->name('prescriptions.create');
+        Route::post('{patient}/visits/{visit}/prescriptions', [PatientPrescriptionController::class, 'store'])->name('prescriptions.store');
+        Route::get('{patient}/prescriptions/{prescription}/edit', [PatientPrescriptionController::class, 'edit'])->name('prescriptions.edit');
+        Route::match(['put', 'patch'], '{patient}/prescriptions/{prescription}', [PatientPrescriptionController::class, 'update'])->name('prescriptions.update');
+        Route::get('{patient}/prescriptions/{prescription}', [PatientPrescriptionController::class, 'show'])->name('prescriptions.show');
+        Route::get('{patient}/prescriptions/{prescription}/print', [PatientPrescriptionController::class, 'print'])->name('prescriptions.print');
+        Route::get('{patient}/prescriptions/{prescription}/pdf', [PatientPrescriptionController::class, 'pdf'])->name('prescriptions.pdf');
+    });
+
+    Route::resource('patients', PatientController::class);
+
+    Route::prefix('pharmacy')->name('pharmacy.')->group(function () {
+        Route::get('lookup', PrescriptionLookupController::class)->name('lookup');
+        Route::post('prescriptions/{prescription}/dispense', [DispensingController::class, 'store'])->name('dispense.store');
+        Route::get('dispensings/{dispensing}/slip', [DispensingController::class, 'printSlip'])->name('dispensings.slip');
+        Route::get('reports', [PharmacyReportController::class, 'index'])->name('reports.index');
+    });
 
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('scan', [InventoryScanController::class, 'index'])->name('scan.index');

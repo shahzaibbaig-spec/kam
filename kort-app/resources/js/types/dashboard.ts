@@ -68,6 +68,17 @@ export interface DashboardPermissionFlags {
 }
 
 export interface DashboardPayload {
+    title?: string;
+    description?: string;
+    visibility?: {
+        metrics?: boolean;
+        quickActions?: boolean;
+        recentActivity?: boolean;
+        alerts?: boolean;
+        chartCards?: boolean;
+        departmentReadiness?: boolean;
+        roleCoverage?: boolean;
+    };
     metrics: DashboardMetric[];
     quickActions: DashboardQuickActionItem[];
     alerts: DashboardAlertItem[];

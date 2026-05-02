@@ -75,4 +75,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Asset::class, 'assigned_user_id');
     }
+
+    public function doctorVisits(): HasMany
+    {
+        return $this->hasMany(PatientVisit::class, 'doctor_id');
+    }
+
+    public function attendingAdmissions(): HasMany
+    {
+        return $this->hasMany(PatientAdmission::class, 'attending_doctor_id');
+    }
 }

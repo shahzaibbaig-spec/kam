@@ -16,6 +16,7 @@ enum InventoryTransactionType: string
     case ReleasedFromQuarantine = 'released_from_quarantine';
     case Damaged = 'damaged';
     case Expired = 'expired';
+    case PharmacyDispensed = 'pharmacy_dispensed';
 
     public static function values(): array
     {

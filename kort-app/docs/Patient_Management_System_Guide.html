@@ -1,0 +1,398 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KORT Patient Management System - Operations and Access Manual</title>
+    <style>
+        @page { margin: 26px 30px; }
+        body {
+            font-family: DejaVu Sans, Arial, sans-serif;
+            color: #0f172a;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        h1, h2, h3 {
+            margin: 0 0 8px 0;
+            color: #0b2f6b;
+        }
+        h1 { font-size: 25px; }
+        h2 {
+            font-size: 16px;
+            margin-top: 18px;
+            border-bottom: 1px solid #bfdbfe;
+            padding-bottom: 4px;
+        }
+        h3 { font-size: 13px; margin-top: 12px; }
+        p { margin: 0 0 8px 0; }
+        ul, ol { margin: 6px 0 10px 18px; padding: 0; }
+        li { margin: 2px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 8px 0 12px 0; }
+        th, td {
+            border: 1px solid #bfdbfe;
+            padding: 6px 7px;
+            vertical-align: top;
+            text-align: left;
+        }
+        th { background: #dbeafe; color: #0b2f6b; }
+        .muted { color: #334155; }
+        .cover {
+            background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+            border: 2px solid #93c5fd;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+        .card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin: 10px 0;
+        }
+        .step {
+            border-left: 3px solid #2563eb;
+            background: #f8fafc;
+            padding: 8px 10px;
+            margin: 8px 0;
+        }
+        .kpi {
+            display: inline-block;
+            border: 1px solid #93c5fd;
+            background: #eff6ff;
+            border-radius: 12px;
+            padding: 3px 8px;
+            margin-right: 6px;
+            font-size: 10px;
+        }
+        .kbd {
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+        .page-break { page-break-before: always; }
+        .small { font-size: 10px; }
+    </style>
+</head>
+<body>
+    <div class="cover">
+        <h1>KORT Patient Management System</h1>
+        <p><strong>Document Type:</strong> Complete Operations, Access, and Workflow Manual</p>
+        <p><strong>Application:</strong> KORT Assest Managment System</p>
+        <p><strong>Module:</strong> Patient Care / Patient Management</p>
+        <p><strong>Version:</strong> 1.0</p>
+        <p><strong>Prepared On:</strong> May 1, 2026</p>
+        <p class="muted">
+            This document is aligned to the implemented Laravel/Inertia module and its current permissions,
+            routes, workflows, and audit behavior.
+        </p>
+        <p>
+            <span class="kpi">Patient Registry</span>
+            <span class="kpi">Admission Workflow</span>
+            <span class="kpi">Diagnosis + Prescriptions</span>
+            <span class="kpi">Print/PDF</span>
+            <span class="kpi">Audit Compliance</span>
+        </p>
+    </div>
+
+    <h2>1. Module Objective</h2>
+    <p>
+        The Patient Management System extends KORT into a hospital-ready clinical workflow where staff can register patients,
+        admit them, assign doctor/ward/bed, record visits and diagnosis, issue prescriptions, and maintain a permanent clinical history.
+    </p>
+    <div class="card">
+        <strong>Core objective in one line:</strong><br>
+        Search or register patient -> Admit if needed -> Doctor documents visit and diagnosis -> Create prescription -> Print/Download PDF -> Preserve full history and audit logs.
+    </div>
+
+    <h2>2. Scope and Integration</h2>
+    <ul>
+        <li>Built inside the existing KORT Laravel application; no change to Asset, Inventory, Procurement, and core UI architecture.</li>
+        <li>Uses existing authentication and role-permission framework (Spatie Permission).</li>
+        <li>Uses existing activity/audit logging conventions.</li>
+        <li>Uses existing blue/white modern Inertia UI flow.</li>
+        <li>Supports OPD, Emergency, and admitted follow-up workflows.</li>
+    </ul>
+
+    <h2>3. Data Design (Clinical Record Structure)</h2>
+    <p>The module stores patient care through normalized entities:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Table</th>
+                <th>Purpose</th>
+                <th>Key Identifiers</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>patients</td><td>Master demographic profile</td><td>patient_number, cnic</td></tr>
+            <tr><td>patient_admissions</td><td>Inpatient admissions and status lifecycle</td><td>admission_number, status</td></tr>
+            <tr><td>patient_visits</td><td>Clinical visit episodes</td><td>visit_number, visit_type</td></tr>
+            <tr><td>patient_diagnoses</td><td>Doctor diagnosis and severity</td><td>visit_id, follow_up_date</td></tr>
+            <tr><td>patient_prescriptions</td><td>Prescription header and instructions</td><td>prescription_number</td></tr>
+            <tr><td>patient_prescription_items</td><td>Medicine line items</td><td>prescription_id</td></tr>
+            <tr><td>patient_documents</td><td>Uploaded reports/documents</td><td>patient_id, visit_id</td></tr>
+        </tbody>
+    </table>
+
+    <h2>4. Role and Rights Matrix</h2>
+    <p>Patient module permissions are enforced per role. Below is the practical access summary:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Role</th>
+                <th>Patient Module Rights</th>
+                <th>Typical Responsibility</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Super Admin</td>
+                <td>Full patient permissions including delete, discharge, print and admin actions</td>
+                <td>Governance, overrides, compliance</td>
+            </tr>
+            <tr>
+                <td>Hospital Admin</td>
+                <td>Full operational access (patient/admission/visit/diagnosis/prescription)</td>
+                <td>Operational supervision, user control</td>
+            </tr>
+            <tr>
+                <td>Doctor / Consultant</td>
+                <td>View/search/create/edit patient, create/edit diagnosis, create/print prescription, discharge</td>
+                <td>Clinical decisions and treatment</td>
+            </tr>
+            <tr>
+                <td>Receptionist</td>
+                <td>Create/search/edit patient, create admissions, view admissions</td>
+                <td>Registration and front-desk admission</td>
+            </tr>
+            <tr>
+                <td>Nurse Supervisor</td>
+                <td>View patients/admissions/visits; edit visit notes/vitals (if needed by workflow)</td>
+                <td>Bedside support and monitoring</td>
+            </tr>
+            <tr>
+                <td>Staff Nurse / Clinical User</td>
+                <td>View patients/admissions/visits; edit visit notes/vitals</td>
+                <td>Clinical support tasks</td>
+            </tr>
+            <tr>
+                <td>Burn Center Manager / Department Head</td>
+                <td>Broad view + create patient, admission, visit, diagnosis, prescription and print</td>
+                <td>Department-level control</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>4.1 Patient Permission Keys</h3>
+    <table>
+        <thead>
+            <tr><th>Permission</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>patient.view</td><td>View patient records and profile/history pages</td></tr>
+            <tr><td>patient.create</td><td>Register new patients</td></tr>
+            <tr><td>patient.edit</td><td>Edit demographics/contact/medical details</td></tr>
+            <tr><td>patient.delete</td><td>Archive patient record</td></tr>
+            <tr><td>patient.search</td><td>Search by CNIC, number, name, phone</td></tr>
+            <tr><td>patient-admission.view / create / edit / discharge</td><td>Admission lifecycle control</td></tr>
+            <tr><td>patient-visit.view / create / edit</td><td>Visit entries and updates</td></tr>
+            <tr><td>patient-diagnosis.view / create / edit</td><td>Clinical diagnosis control</td></tr>
+            <tr><td>patient-prescription.view / create / print</td><td>Treatment writing and print/PDF</td></tr>
+        </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>5. User Management and Password Authority</h2>
+    <h3>5.1 Who Can Add New Users?</h3>
+    <p>
+        New staff users can be added from <span class="kbd">Administration -> Users</span> by roles having <strong>users.create</strong>.
+        In the current matrix, this is primarily <strong>Super Admin</strong> and <strong>Hospital Admin</strong>.
+    </p>
+
+    <h3>5.2 Who Can Change User Access and Roles?</h3>
+    <p>
+        User profile updates require <strong>users.update</strong>. Role assignment changes are controlled by
+        <strong>users.assign-roles</strong> and role permissions by <strong>roles.update</strong>.
+    </p>
+
+    <h3>5.3 Who Can Change Passwords?</h3>
+    <table>
+        <thead>
+            <tr><th>Scenario</th><th>Allowed Actor</th><th>Control Rule</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>User changes own password</td>
+                <td>Any authenticated user</td>
+                <td>Profile password update requires current password confirmation</td>
+            </tr>
+            <tr>
+                <td>Admin sets/resets another user password</td>
+                <td>Roles with users.update via User edit form</td>
+                <td>Password field can be updated on user edit; blank leaves unchanged</td>
+            </tr>
+            <tr>
+                <td>Forgot-password flow</td>
+                <td>User owning email account</td>
+                <td>Standard reset link workflow (depends on mail setup)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>6. Operating Procedures</h2>
+    <h3>6.1 Register New Patient (Reception / Admin)</h3>
+    <div class="step">
+        <strong>Step 1:</strong> Open <span class="kbd">Patient Care -> Patient Search</span> and search first using CNIC, patient number, name, or phone.<br>
+        <strong>Step 2:</strong> If no existing record matches, go to <span class="kbd">Patients -> New Patient</span>.<br>
+        <strong>Step 3:</strong> Enter demographics, emergency contact, allergies, medical history, optional photo.<br>
+        <strong>Step 4:</strong> Save; patient number is auto-generated when not manually entered.
+    </div>
+    <p class="small muted">
+        CNIC is validated for Pakistani format (#####-#######-# or 13 digits) and stored in normalized format to prevent duplicates.
+    </p>
+
+    <h3>6.2 Fast Search Logic</h3>
+    <ul>
+        <li>Exact CNIC or exact patient number: opens patient profile directly.</li>
+        <li>Name/phone query with multiple matches: shows result list for selection.</li>
+        <li>Search is available on Patient List and dedicated Patient Search page.</li>
+    </ul>
+
+    <h3>6.3 Patient Admission Workflow</h3>
+    <div class="step">
+        <strong>Step 1:</strong> Open patient profile.<br>
+        <strong>Step 2:</strong> Click Admit Patient.<br>
+        <strong>Step 3:</strong> Enter admission date/time, department, ward/room/bed, attending doctor, reason, initial condition.<br>
+        <strong>Step 4:</strong> Save admission with status <strong>admitted</strong>.
+    </div>
+    <p>Admission status lifecycle supports: <strong>admitted</strong>, <strong>discharged</strong>, <strong>transferred</strong>, <strong>cancelled</strong>.</p>
+
+    <h3>6.4 Doctor Queue and Visit Handling</h3>
+    <ul>
+        <li>Doctors open <span class="kbd">Patient Care -> Doctor Queue</span> to see admitted patients assigned to them.</li>
+        <li>From patient/admission context, doctor creates diagnosis entry which automatically creates linked visit record.</li>
+        <li>Visit captures complaint, vitals, notes, visit type, date/time, doctor, and optional admission link.</li>
+    </ul>
+
+    <h3>6.5 Diagnosis Workflow</h3>
+    <div class="step">
+        <strong>Step 1:</strong> Open Create Diagnosis for patient.<br>
+        <strong>Step 2:</strong> Fill visit details and chief complaint.<br>
+        <strong>Step 3:</strong> Enter diagnosis, clinical notes, severity, and follow-up date.<br>
+        <strong>Step 4:</strong> Save to permanently append diagnosis and visit history.
+    </div>
+
+    <h3>6.6 Prescription Workflow</h3>
+    <div class="step">
+        <strong>Step 1:</strong> After diagnosis save, open Create Prescription.<br>
+        <strong>Step 2:</strong> Add one or more medicine rows (name, dosage, frequency, duration, instructions).<br>
+        <strong>Step 3:</strong> Add general instructions and printable notes.<br>
+        <strong>Step 4:</strong> Save; prescription is linked to patient and visit with unique prescription number.
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>7. Prescription Print and PDF</h2>
+    <p>
+        Authorized users with <strong>patient-prescription.print</strong> can:
+    </p>
+    <ul>
+        <li>Open browser-print view (<span class="kbd">Print Prescription</span>)</li>
+        <li>Download official PDF (<span class="kbd">Download PDF</span>)</li>
+    </ul>
+    <p>Prescription output includes:</p>
+    <ul>
+        <li>Hospital/system name</li>
+        <li>Patient name, patient number, CNIC, age/gender</li>
+        <li>Date/time and doctor name</li>
+        <li>Diagnosis summary and follow-up date</li>
+        <li>Medicine table and instructions</li>
+        <li>Doctor signature area</li>
+    </ul>
+
+    <h2>8. Patient Profile and History Design</h2>
+    <p>The profile page is a complete clinical dashboard per patient:</p>
+    <ul>
+        <li>Demographics and contact information</li>
+        <li>Allergies and medical history</li>
+        <li>Current admission status</li>
+        <li>Past admissions list</li>
+        <li>Visit history</li>
+        <li>Diagnosis history</li>
+        <li>Prescription history with print/PDF access</li>
+        <li>Uploaded documents and notes</li>
+    </ul>
+    <p>
+        The History page renders a timeline-style longitudinal patient journey for clinical and compliance review.
+    </p>
+
+    <h2>9. Audit and Compliance Controls</h2>
+    <p>All critical patient events are activity-logged, including:</p>
+    <ul>
+        <li>Patient created / updated / archived</li>
+        <li>Admission created / updated / discharged</li>
+        <li>Visit created / updated</li>
+        <li>Diagnosis created / updated</li>
+        <li>Prescription created / printed / PDF downloaded</li>
+        <li>Patient document uploaded</li>
+    </ul>
+    <p class="muted small">
+        This logging supports traceability, accountability, and post-incident review.
+    </p>
+
+    <h2>10. End-to-End Working Design (Operational Blueprint)</h2>
+    <div class="card">
+        <strong>Front Desk Layer:</strong> Search-before-create, patient registration, admission initiation.<br>
+        <strong>Clinical Layer:</strong> Doctor queue, visit capture, diagnosis, medication planning.<br>
+        <strong>Treatment Output Layer:</strong> Prescription print and PDF generation for bedside and pharmacy use.<br>
+        <strong>History Layer:</strong> Longitudinal timeline and profile retrieval for follow-up continuity.<br>
+        <strong>Governance Layer:</strong> Role-restricted access + audit log monitoring.
+    </div>
+
+    <h2>11. Quick Route Map (Patient Module)</h2>
+    <table>
+        <thead>
+            <tr><th>Area</th><th>Representative Route Name(s)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Patient list/profile</td><td>patients.index, patients.show, patients.history</td></tr>
+            <tr><td>Search/queue</td><td>patients.search, patients.queue</td></tr>
+            <tr><td>Admissions</td><td>patients.admissions.create/store/show/update/discharge</td></tr>
+            <tr><td>Diagnosis & visits</td><td>patients.diagnoses.create/store/edit/update, patients.visits.update</td></tr>
+            <tr><td>Prescriptions</td><td>patients.prescriptions.create/store/show/print/pdf</td></tr>
+            <tr><td>Documents</td><td>patients.documents.store</td></tr>
+        </tbody>
+    </table>
+
+    <h2>12. Testing and Operational Verification</h2>
+    <ul>
+        <li>Feature tests cover patient search redirect behavior (CNIC and patient number exact match).</li>
+        <li>Feature tests validate diagnosis + visit creation and prescription + print/PDF flow.</li>
+        <li>Seeder provides a sample patient, admission, diagnosis, prescription, and document linkage for demonstrations.</li>
+    </ul>
+
+    <h2>13. Implementation Notes for Admin Team</h2>
+    <ul>
+        <li>Use role-based access only; avoid assigning broad rights to non-admin users.</li>
+        <li>Ensure CNIC entry standardization at front desk.</li>
+        <li>Use discharge summary consistently for inpatients.</li>
+        <li>Review audit logs routinely via Security section.</li>
+        <li>Keep doctor and ward assignment accurate to maintain queue quality.</li>
+    </ul>
+
+    <h2>14. Conclusion</h2>
+    <p>
+        The Patient Management System is now integrated as a complete hospital workflow layer in KORT with controlled access,
+        durable medical records, printable treatment output, and auditable operations suitable for professional healthcare use.
+    </p>
+
+    <p class="small muted">
+        End of document.
+    </p>
+</body>
+</html>

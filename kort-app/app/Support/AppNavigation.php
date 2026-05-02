@@ -37,6 +37,21 @@ class AppNavigation
                 ],
             ],
             [
+                'label' => 'Patient Care',
+                'items' => [
+                    ['label' => 'Patients', 'route' => 'patients.index', 'permission' => 'patient.view'],
+                    ['label' => 'Patient Search', 'route' => 'patients.search', 'permission' => 'patient.search'],
+                    ['label' => 'Doctor Queue', 'route' => 'patients.queue', 'permission' => 'patient-visit.view'],
+                ],
+            ],
+            [
+                'label' => 'Pharmacy',
+                'items' => [
+                    ['label' => 'Prescription Lookup', 'route' => 'pharmacy.lookup', 'permission' => 'pharmacy.view'],
+                    ['label' => 'Dispensing Reports', 'route' => 'pharmacy.reports.index', 'permission' => 'pharmacy-report.view'],
+                ],
+            ],
+            [
                 'label' => 'Inventory',
                 'items' => [
                     ['label' => 'Inventory Items', 'route' => 'inventory.items.index', 'permission' => 'inventory-item.view'],

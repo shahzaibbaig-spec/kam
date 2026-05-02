@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             InventoryLifecycleSeeder::class,
             ProcurementLifecycleSeeder::class,
             SystemSettingSeeder::class,
+            PatientManagementSeeder::class,
         ]);
     }
 }

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KORT Complete System Handbook</title>
+    <style>
+        @page { margin: 24mm 18mm; }
+        body { font-family: Arial, sans-serif; color: #0f172a; line-height: 1.5; font-size: 12px; }
+        h1, h2, h3 { color: #0b2f6b; margin-bottom: 8px; }
+        h1 { font-size: 28px; margin-top: 0; }
+        h2 { font-size: 18px; border-bottom: 1px solid #bfdbfe; padding-bottom: 4px; margin-top: 18px; }
+        h3 { font-size: 14px; margin-top: 14px; }
+        p { margin: 6px 0; }
+        ul, ol { margin: 6px 0 10px 20px; }
+        li { margin: 2px 0; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0 14px; }
+        th, td { border: 1px solid #cbd5e1; padding: 7px; text-align: left; vertical-align: top; }
+        th { background: #e0ecff; color: #0b2f6b; }
+        .cover { border: 2px solid #93c5fd; background: #eff6ff; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+        .note { border-left: 4px solid #2563eb; background: #f8fafc; padding: 8px 10px; margin: 10px 0; }
+        .small { font-size: 11px; color: #334155; }
+        .pill { display: inline-block; border: 1px solid #93c5fd; background: #eef5ff; border-radius: 12px; padding: 2px 8px; margin-right: 6px; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="cover">
+        <h1>KORT Hospital Operations Handbook</h1>
+        <p><strong>Version:</strong> 1.0</p>
+        <p><strong>Last Updated:</strong> May 2, 2026</p>
+        <p><strong>System:</strong> KORT Asset Management + Patient Management + Pharmacy Dispensing</p>
+        <p class="small">This handbook provides complete role guides, demo credentials, and workflow instructions for all operational modules.</p>
+    </div>
+
+    <h2>1) System Access</h2>
+    <ul>
+        <li><strong>URL:</strong> http://127.0.0.1:8000</li>
+        <li><strong>Login:</strong> Email + Password</li>
+        <li><strong>Access Model:</strong> Permission-aware menus and route-level enforcement</li>
+    </ul>
+
+    <h2>2) Demo Accounts</h2>
+    <p>Default password for all demo users: <strong>BurnCenter@123</strong></p>
+    <table>
+        <thead>
+            <tr><th>Role</th><th>Name</th><th>Email</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Super Admin</td><td>Amina Siddiqui</td><td>super.admin@kort.local</td></tr>
+            <tr><td>Hospital Admin</td><td>Dr. Haris Malik</td><td>hospital.admin@kort.local</td></tr>
+            <tr><td>Burn Center Manager / Department Head</td><td>Dr. Sana Qureshi</td><td>burn.manager@kort.local</td></tr>
+            <tr><td>Doctor / Consultant</td><td>Dr. Ahmed Raza</td><td>doctor@kort.local</td></tr>
+            <tr><td>Receptionist</td><td>Sara Javed</td><td>receptionist@kort.local</td></tr>
+            <tr><td>Pharmacist / Medical Store Staff</td><td>Farhan Yousaf</td><td>pharmacist@kort.local</td></tr>
+            <tr><td>Store Manager / Inventory Officer</td><td>Usman Riaz</td><td>store.manager@kort.local</td></tr>
+            <tr><td>Biomedical Engineer</td><td>Engr. Mahnoor Ali</td><td>biomedical@kort.local</td></tr>
+            <tr><td>Nurse Supervisor</td><td>Nadia Rehman</td><td>nurse.supervisor@kort.local</td></tr>
+            <tr><td>Staff Nurse / Clinical User</td><td>Rabia Iftikhar</td><td>staff.nurse@kort.local</td></tr>
+            <tr><td>Procurement Officer</td><td>Kiran Abbas</td><td>procurement@kort.local</td></tr>
+            <tr><td>Accounts / Finance</td><td>Umair Hassan</td><td>finance@kort.local</td></tr>
+            <tr><td>Auditor</td><td>Hiba Mansoor</td><td>auditor@kort.local</td></tr>
+        </tbody>
+    </table>
+    <p class="note"><strong>Security:</strong> Change default credentials before production use.</p>
+
+    <h2>3) User & Password Administration</h2>
+    <h3>Who can create users?</h3>
+    <ul>
+        <li>Super Admin</li>
+        <li>Hospital Admin</li>
+    </ul>
+    <p>Required permission: <code>users.create</code></p>
+    <h3>Who can reset other users’ passwords?</h3>
+    <ul>
+        <li>Super Admin</li>
+        <li>Hospital Admin</li>
+    </ul>
+    <p>Required permission: <code>users.update</code></p>
+    <h3>Who can change own password?</h3>
+    <ul>
+        <li>All logged-in users via Profile &gt; Password</li>
+    </ul>
+
+    <h2>4) Role Guides</h2>
+    <h3>Receptionist</h3>
+    <p><span class="pill">Patient Create</span><span class="pill">Doctor Assignment</span><span class="pill">Admissions</span></p>
+    <ol>
+        <li>Search patient by CNIC / patient number / name.</li>
+        <li>If new, register patient (auto patient number generated).</li>
+        <li>Assign doctor and checkup details.</li>
+        <li>Create visit/admission and route patient to doctor queue.</li>
+    </ol>
+    <p>Cannot access inventory/procurement/asset modules.</p>
+
+    <h3>Doctor / Consultant</h3>
+    <p><span class="pill">Visit</span><span class="pill">Diagnosis</span><span class="pill">Prescription</span></p>
+    <ol>
+        <li>Open Doctor Queue and assigned patients.</li>
+        <li>Create visit note and diagnosis.</li>
+        <li>Create prescription and print/download.</li>
+    </ol>
+    <ul>
+        <li>Prescription edit allowed only within 24 hours.</li>
+        <li>Prescription cannot be edited once dispensing starts.</li>
+    </ul>
+
+    <h3>Pharmacist / Medical Store Staff</h3>
+    <p><span class="pill">Dispensing Only</span><span class="pill">Medicine Availability Search</span></p>
+    <ol>
+        <li>Open <strong>Pharmacy &gt; Prescription Lookup</strong>.</li>
+        <li>Search by CNIC/patient number/prescription number to fetch prescription.</li>
+        <li>Search by medicine name/code to check stock availability.</li>
+        <li>Enter dispense quantities and click <strong>Done</strong>.</li>
+    </ol>
+    <p>On Done, inventory and batches are reduced automatically and dispensing record is saved.</p>
+    <p>Cannot modify inventory master, batches, procurement, suppliers, or stock adjustments.</p>
+
+    <h2>5) Core Module Workflows</h2>
+    <h3>Patient Management</h3>
+    <ul>
+        <li>Registration with CNIC validation and duplicate prevention</li>
+        <li>Auto patient number format: <code>KORT-PAT-YYYY-000001</code></li>
+        <li>Admissions, visits, diagnoses, prescriptions, history timeline</li>
+    </ul>
+
+    <h3>Pharmacy Dispensing</h3>
+    <ul>
+        <li>FEFO batch logic</li>
+        <li>Expired/quarantined/damaged stock blocked</li>
+        <li>Status updates: pending / partially_dispensed / fully_dispensed</li>
+        <li>Dispensing slip print support</li>
+    </ul>
+
+    <h3>Inventory / Procurement / Assets / Maintenance</h3>
+    <ul>
+        <li>Controlled by dedicated operational/admin roles only</li>
+        <li>Route-level permission checks enforced</li>
+    </ul>
+
+    <h2>6) Audit Logging</h2>
+    <p>All critical operations are logged, including:</p>
+    <ul>
+        <li>Authentication events</li>
+        <li>Patient create/update/admission/doctor assignment</li>
+        <li>Diagnosis/prescription actions and print events</li>
+        <li>Pharmacy search/view/dispense/print/fail events</li>
+        <li>Inventory transactions, including <code>pharmacy_dispensed</code></li>
+    </ul>
+
+    <h2>7) Quick Validation Checklist</h2>
+    <ol>
+        <li>Receptionist can register and assign doctor, but gets 403 on inventory routes.</li>
+        <li>Doctor can diagnose/prescribe, but gets 403 on inventory routes.</li>
+        <li>Pharmacist can search medicine availability and dispense with Done button.</li>
+        <li>Dispensing reduces stock and updates prescription dispensing status.</li>
+    </ol>
+
+    <h2>8) Production Recommendations</h2>
+    <ul>
+        <li>Rotate demo passwords immediately.</li>
+        <li>Enable HTTPS and production session hardening.</li>
+        <li>Schedule DB backups and log retention.</li>
+        <li>Review role matrix periodically (least privilege).</li>
+    </ul>
+</body>
+</html>

@@ -7,6 +7,7 @@ use App\Models\AssetCategory;
 use App\Models\GoodsReceipt;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
+use App\Models\Patient;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequisition;
 use App\Models\Supplier;
@@ -16,12 +17,14 @@ use App\Policies\AssetPolicy;
 use App\Policies\GoodsReceiptPolicy;
 use App\Policies\InventoryCategoryPolicy;
 use App\Policies\InventoryItemPolicy;
+use App\Policies\PatientPolicy;
 use App\Policies\PurchaseOrderPolicy;
 use App\Policies\PurchaseRequisitionPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\SupplierPolicy;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -43,6 +46,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        JsonResource::withoutWrapping();
+
         if ($this->app->isProduction()) {
             URL::forceScheme('https');
         }
@@ -51,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(AssetCategory::class, AssetCategoryPolicy::class);
         Gate::policy(InventoryCategory::class, InventoryCategoryPolicy::class);
         Gate::policy(InventoryItem::class, InventoryItemPolicy::class);
+        Gate::policy(Patient::class, PatientPolicy::class);
         Gate::policy(Supplier::class, SupplierPolicy::class);
         Gate::policy(PurchaseRequisition::class, PurchaseRequisitionPolicy::class);
         Gate::policy(PurchaseOrder::class, PurchaseOrderPolicy::class);

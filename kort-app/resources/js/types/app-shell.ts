@@ -11,6 +11,19 @@ export interface AppShellUser {
     permissions: string[];
 }
 
+export interface AppNotificationItem {
+    id: string;
+    title: string;
+    body: string;
+    url?: string | null;
+    created_at?: string | null;
+}
+
+export interface AppNotificationFeed {
+    unread_count: number;
+    items: AppNotificationItem[];
+}
+
 export interface AppNavigationItem {
     label: string;
     route: string;
@@ -71,5 +84,6 @@ export interface ReactSharedPageProps {
         success?: string | null;
         error?: string | null;
     };
+    notifications: AppNotificationFeed;
     errors?: Record<string, string>;
 }
