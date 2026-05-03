@@ -48,6 +48,7 @@ Route::redirect('/', '/dashboard');
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/search/universal', UniversalSearchController::class)->name('search.universal');
+    Route::get('/search/medicines', [PatientPrescriptionController::class, 'searchMedicines'])->name('search.medicines');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

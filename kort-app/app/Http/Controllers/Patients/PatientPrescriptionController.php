@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Patients;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Patients\PatientPrescriptionRequest;
+use App\Models\InventoryItem;
 use App\Models\Patient;
 use App\Models\PatientPrescription;
 use App\Models\PatientVisit;
 use App\Services\PatientNumberService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +19,48 @@ use Inertia\Response;
 
 class PatientPrescriptionController extends Controller
 {
+    public function searchMedicines(Request $request): JsonResponse
+    {
+        abort_unless(
+            ($request->user()?->can('patient-prescription.create') ?? false)
+                || ($request->user()?->can('patient-prescription.edit') ?? false),
+            403
+        );
+
+        $query = trim((string) $request->query('q', ''));
+        $limit = max(1, min((int) $request->integer('limit', 8), 15));
+
+        if (mb_strlen($query) < 2) {
+            return response()->json(['results' => []]);
+        }
+
+        $searchTerm = '%'.addcslashes($query, '\%_').'%';
+
+        $items = InventoryItem::query()
+            ->where('is_active', true)
+            ->whereRaw('(current_quantity - reserved_quantity - damaged_quantity - quarantined_quantity - expired_quantity) > 0')
+            ->where(function ($builder) use ($searchTerm) {
+                $builder
+                    ->where('item_name', 'like', $searchTerm)
+                    ->orWhere('item_code', 'like', $searchTerm)
+                    ->orWhere('barcode_value', 'like', $searchTerm)
+                    ->orWhere('sku', 'like', $searchTerm);
+            })
+            ->orderBy('item_name')
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'results' => $items->map(fn (InventoryItem $item) => [
+                'id' => $item->id,
+                'item_name' => $item->item_name,
+                'item_code' => $item->item_code,
+                'unit_of_measure' => $item->unit_of_measure,
+                'available_quantity' => $item->availableBalance(),
+            ])->values()->all(),
+        ]);
+    }
+
     public function create(Patient $patient, PatientVisit $visit): Response
     {
         abort_unless(request()->user()?->can('patient-prescription.create'), 403);

@@ -1,4 +1,5 @@
 import { ArrowLeft, Plus, Save, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 import { useReactPage } from '@/Bridge/ReactPageContext';
 import { AppButton } from '@/Components/ui/AppButton';
@@ -19,6 +20,14 @@ function emptyItem(): PrescriptionItemFormData {
         inventory_item_id: '',
         prescribed_quantity: '',
     };
+}
+
+interface MedicineSuggestion {
+    id: number;
+    item_name: string;
+    item_code?: string | null;
+    unit_of_measure?: string | null;
+    available_quantity: number;
 }
 
 export default function PatientPrescriptionFormPage() {
@@ -44,10 +53,60 @@ export default function PatientPrescriptionFormPage() {
                 : [emptyItem()],
     });
 
+    const [suggestionsByIndex, setSuggestionsByIndex] = useState<Record<number, MedicineSuggestion[]>>({});
+    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number | null>(null);
+    const searchDebounceTimers = useRef<Record<number, number>>({});
+
     const updateItem = (index: number, key: keyof PrescriptionItemFormData, value: string) => {
         const next = [...form.data.items];
         next[index] = { ...next[index], [key]: value };
         form.setData('items', next);
+    };
+
+    const clearSuggestionRow = (index: number) => {
+        setSuggestionsByIndex((current) => ({ ...current, [index]: [] }));
+    };
+
+    const searchMedicineSuggestions = (index: number, query: string) => {
+        if (searchDebounceTimers.current[index]) {
+            window.clearTimeout(searchDebounceTimers.current[index]);
+        }
+
+        if (query.trim().length < 2) {
+            clearSuggestionRow(index);
+            return;
+        }
+
+        searchDebounceTimers.current[index] = window.setTimeout(async () => {
+            try {
+                const response = await window.axios.get(route('search.medicines'), {
+                    params: {
+                        q: query,
+                        limit: 8,
+                    },
+                });
+
+                setSuggestionsByIndex((current) => ({
+                    ...current,
+                    [index]: response.data?.results ?? [],
+                }));
+                setActiveSuggestionIndex(index);
+            } catch {
+                clearSuggestionRow(index);
+            }
+        }, 220);
+    };
+
+    const selectMedicineSuggestion = (index: number, suggestion: MedicineSuggestion) => {
+        const next = [...form.data.items];
+        next[index] = {
+            ...next[index],
+            medicine_name: suggestion.item_name,
+            inventory_item_id: String(suggestion.id),
+        };
+        form.setData('items', next);
+        clearSuggestionRow(index);
+        setActiveSuggestionIndex(null);
     };
 
     return (
@@ -123,7 +182,50 @@ export default function PatientPrescriptionFormPage() {
                             {form.data.items.map((item, index) => (
                                 <div key={`item-${index}`} className="rounded-3xl border border-slate-200 bg-slate-50/60 p-4">
                                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
-                                        <AppInput placeholder="Medicine name" value={item.medicine_name} onChange={(event) => updateItem(index, 'medicine_name', event.target.value)} />
+                                        <div className="relative">
+                                            <AppInput
+                                                placeholder="Medicine name"
+                                                value={item.medicine_name}
+                                                onFocus={() => setActiveSuggestionIndex(index)}
+                                                onBlur={() => {
+                                                    window.setTimeout(() => {
+                                                        if (activeSuggestionIndex === index) {
+                                                            setActiveSuggestionIndex(null);
+                                                        }
+                                                        clearSuggestionRow(index);
+                                                    }, 150);
+                                                }}
+                                                onChange={(event) => {
+                                                    const value = event.target.value;
+                                                    const next = [...form.data.items];
+                                                    next[index] = {
+                                                        ...next[index],
+                                                        medicine_name: value,
+                                                        inventory_item_id: '',
+                                                    };
+                                                    form.setData('items', next);
+                                                    searchMedicineSuggestions(index, value);
+                                                }}
+                                            />
+                                            {activeSuggestionIndex === index && (suggestionsByIndex[index]?.length ?? 0) > 0 ? (
+                                                <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 max-h-56 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1 shadow-lg">
+                                                    {suggestionsByIndex[index].map((suggestion) => (
+                                                        <button
+                                                            key={suggestion.id}
+                                                            type="button"
+                                                            className="block w-full rounded-xl px-3 py-2 text-left transition hover:bg-slate-50"
+                                                            onMouseDown={(event) => event.preventDefault()}
+                                                            onClick={() => selectMedicineSuggestion(index, suggestion)}
+                                                        >
+                                                            <p className="text-sm font-medium text-slate-900">{suggestion.item_name}</p>
+                                                            <p className="text-xs text-slate-500">
+                                                                {suggestion.item_code ?? '-'} | Available: {suggestion.available_quantity} {suggestion.unit_of_measure ?? ''}
+                                                            </p>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : null}
+                                        </div>
                                         <AppInput placeholder="Dosage" value={item.dosage} onChange={(event) => updateItem(index, 'dosage', event.target.value)} />
                                         <AppInput placeholder="Frequency" value={item.frequency} onChange={(event) => updateItem(index, 'frequency', event.target.value)} />
                                         <AppInput placeholder="Duration" value={item.duration} onChange={(event) => updateItem(index, 'duration', event.target.value)} />

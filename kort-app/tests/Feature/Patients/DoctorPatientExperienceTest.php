@@ -2,12 +2,15 @@
 
 namespace Tests\Feature\Patients;
 
+use App\Models\InventoryCategory;
+use App\Models\InventoryItem;
 use App\Models\Patient;
 use App\Models\PatientPrescription;
 use App\Models\PatientVisit;
 use App\Models\User;
 use Database\Seeders\AccessControlSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class DoctorPatientExperienceTest extends TestCase
@@ -93,6 +96,51 @@ class DoctorPatientExperienceTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('results.patients.0.id', $visiblePatient->id);
         $response->assertJsonMissing(['title' => 'Other Doctor Patient']);
+    }
+
+    public function test_doctor_can_search_available_medicines_for_prescription_autocomplete(): void
+    {
+        $this->seed(AccessControlSeeder::class);
+
+        $doctor = User::factory()->create(['status' => 'active']);
+        $doctor->assignRole('Doctor / Consultant');
+
+        $category = InventoryCategory::query()->create([
+            'name' => 'Autocomplete Medicines',
+            'code' => 'AUTO-MED-'.random_int(100, 999),
+            'is_active' => true,
+        ]);
+
+        InventoryItem::query()->create([
+            'item_uuid' => (string) Str::uuid(),
+            'inventory_category_id' => $category->id,
+            'item_name' => 'Mupirocin Ointment',
+            'item_code' => 'MED-MUP-200',
+            'unit_of_measure' => 'tube',
+            'current_quantity' => 12,
+            'reserved_quantity' => 1,
+            'is_active' => true,
+        ]);
+
+        InventoryItem::query()->create([
+            'item_uuid' => (string) Str::uuid(),
+            'inventory_category_id' => $category->id,
+            'item_name' => 'Mupirocin Out Of Stock',
+            'item_code' => 'MED-MUP-000',
+            'unit_of_measure' => 'tube',
+            'current_quantity' => 0,
+            'reserved_quantity' => 0,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($doctor)->getJson(route('search.medicines', [
+            'q' => 'mup',
+            'limit' => 10,
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('results.0.item_name', 'Mupirocin Ointment');
+        $response->assertJsonMissing(['item_name' => 'Mupirocin Out Of Stock']);
     }
 
     public function test_receptionist_dashboard_shows_only_patient_operations_actions(): void
